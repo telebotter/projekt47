@@ -36,6 +36,8 @@ class Game(models.Model):
     """
     name = models.CharField(max_length=200)
     text = models.TextField(null=True, blank=True)
+    addons = models.ManyToManyField("Addon", related_name='games', null=True,
+                                    blank=True)
 
     def __str__(self):
         return self.name
@@ -50,8 +52,6 @@ class Addon(models.Model):
     """
     name = models.CharField(max_length=200)
     text = models.TextField(null=True, blank=True)
-    games = models.ManyToManyField(Game, related_name='addons', null=True,
-                                    blank=True)
 
     def __str__(self):
         return self.name
