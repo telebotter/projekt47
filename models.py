@@ -43,6 +43,29 @@ class Game(models.Model):
         return self.name
 
 
+class Adventure(models.Model):
+    """ One adventure or story, that belongs to a game and is told by the GM.
+    """
+    class Meta:
+        verbose_name = 'Abenteuer'
+        verbose_name_plural = 'Abenteuer'
+    name = models.CharField(max_length=150)
+    game = models.ForeignKey(Game, on_delete=models.CASCADE)
+    based_on = models.ForeignKey("Adventure", null=True, blank=True,
+                                        on_delete=models.SET_NULL)
+    duration = models.FloatField(null=True, blank=True, verbose_name='Dauer')
+    player_min = models.IntegerField(null=True, blank=True,
+                                        verbose_name='Minimale Spielerzahl')
+    player_max = models.IntegerField(null=True, blank=True,
+                                        verbose_name='Maximale Spielerzahl')
+    preview = models.CharField(max_length=1024, null=True, blank=True,
+                                        verbose_name='Kurzbeschreibung')
+    text = models.TextField(verbose_name='Text')
+
+    def __str__(self):
+        return self.name
+
+
 class Addon(models.Model):
     """ Set of rules, actions and stats
     Example:
@@ -87,6 +110,8 @@ class Action(models.Model):
                                 null=True, blank=True)
     formula = models.CharField(max_length=200, null=True, blank=True) # '1*W+4'
     answer = models.CharField(max_length=300, null=True, blank=True)
+    special = models.BooleanField(default=False,
+                                verbose_name='Skill nötig')
 
     def __str__(self):
         return '{} [{}]'.format(self.name,
@@ -97,7 +122,7 @@ class Character(models.Model):
     """ A players character, belongs to an addon and can have stats with values,
     and actions with values/level through relations.
     """
-    owner = models.ForeignKey(Projekt47User, on_delete=models.CASCADE,
+    owner = models.ForeignKey(Projekt47User, on_delete=models.SET_NULL,
                                 null=True, blank=True)
     name = models.CharField(max_length=200)
     game = models.ForeignKey(Game, related_name='characters',
@@ -106,6 +131,23 @@ class Character(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Session(models.Model):
+    """ An adventure is played in a session, the session stores story related
+    details and settings. Players (Projekt47User) can join a session, with a
+    character from a respective game. Owner of a session is the GM.
+    """
+    owner = models.ForeignKey(Projekt47User, on_delete=models.SET_NULL,
+                                null=True, blank=True)
+    name = models.CharField(max_length=200, default='unnamed')
+    game = models.ForeignKey(Game, related_name='sessions',
+                                on_delete=models.CASCADE)
+    characters = models.ManyToManyField(Character, related_name='sessions',
+                                null=True, blank=True)
+
+    def __str__(self):
+        return '{} [{}]'.format(self.name, self.game.name)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -133,7 +175,18 @@ class CharStat(models.Model):
     """
     char = models.ForeignKey(Character, on_delete=models.CASCADE)
     stat = models.ForeignKey(Stat, on_delete=models.CASCADE)
-    value = models.FloatField(default=0)
+    value = models.IntegerField(default=0)
 
     def __str__(self):
-        return '{}: {} {}'.format(self.char.name, self.stat.name, self.value)
+        return '{}: {} {:+d}'.format(self.char.name, self.stat.name, self.value)
+
+
+class CharAction(models.Model):
+    """ character specific information of an action, like level/skill
+    """
+    char = models.ForeignKey(Character, on_delete=models.CASCADE)
+    act = models.ForeignKey(Action, on_delete=models.CASCADE)
+    value = models.IntegerField(default=0)
+
+    def __str__(self):
+        return '{}: {} {:+d}'.format(self.char.name, self.act.name, self.value)
