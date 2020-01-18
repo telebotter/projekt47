@@ -11,7 +11,6 @@ class Projekt47User(models.Model):
     telebot_user = models.OneToOneField(TelebotUser,
                         related_name='projekt47_user',
                         null=True, blank=True, on_delete=models.CASCADE)
-    nick_name = models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
         try:

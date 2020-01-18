@@ -14,6 +14,7 @@ from telegram.ext import CallbackQueryHandler
 from telegram.ext import Filters
 from django_telegrambot.apps import DjangoTelegramBot
 from projekt47.models import *
+from projekt47 import utils as ut
 import random
 import logging
 logger = logging.getLogger(__name__)
@@ -24,7 +25,9 @@ def error(bot, update, error):
 
 
 def start(bot, update):
-    update.message.reply_text('hallo')
+    tg_user = update.message.from_user
+    p_user = ut.get_p_user(tg_user)
+    update.message.reply_text(f'hallo {p_user.telebot_user.first_name}')
 
 
 def main():
