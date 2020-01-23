@@ -17,5 +17,5 @@ Schauen wie nah man mit diesem Projekt an uebliche Fantasy-Rollenspiele herankom
 Addons: Basis, Mittelalter, Klassische Magie
 
 ### SciFi
-Extraterristische Abenteuer in einem Zukunftsscenario basierend auf Wissenschaftlich begründeten Gedankenspielen.
+Extraterristische Abenteuer in einem Zukunftsscenario basierend auf semi-wissenschaftlich begründeten Gedankenspielen.
 Addons: Basis, SciFi
