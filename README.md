@@ -3,7 +3,7 @@ Und noch eine neue Projektidee parael dazu.. Ein Telegrambot bzw. Toolkit für T
 
 ## Web
 Eine [website](https://telebotter.sarbot.de/projekt47/) gibts noch nicht, aber die Datenbank ist schon bereit:
-[Datenbank verwalten](https://telebotter.sarbot.de/projekt47/admin/)
+[Datenbank verwalten](https://telebotter.sarbot.de/admin/projekt47/)
 
 ## Games
 Zur Zeit gib es drei sehr verschiedene Spielideen, um bei der Entwicklung zu testen wie gut die Regeln veralgemeinert werden können.
