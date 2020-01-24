@@ -149,6 +149,21 @@ class Session(models.Model):
         return '{} [{}]'.format(self.name, self.game.name)
 
 
+class MetaCard(models.Model):
+    """ bonus regeln zB trinken bei pasch etc.. um zusatz fun einzubauen
+    greifen nicht in die bot logik ein ermöglichen dem spieler aber bestimmte
+    andere handlungen.. die er/gm ausspielen muss..
+    """
+    addon = models.ForeignKey(Addon, related_name='meta_cards', on_delete=models.CASCADE)
+    name = models.CharField(max_length=200, default='Meta Karte')
+    short = models.CharField(max_length=400, default='Kurzbeschreibung der MetaKarte (log, tooltip)') # log text and shord des
+    text = models.CharField(max_length=500, default="Vollständige Erklärung der MetaKarte")
+
+    def __str__(self):
+        return self.addon.name + ': ' + self.name
+
+
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   relations between classes
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
