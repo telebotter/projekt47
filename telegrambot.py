@@ -28,7 +28,7 @@ def error(bot, update, error):
 
 def start(bot, update):
     tg_user = update.message.from_user
-    p_user = ut.get_p_user(tg_user)
+    p_user = ut.get_p_user(tg_user, update=True)
     update.message.reply_text(f'hallo {p_user.telebot_user.first_name}')
 
 

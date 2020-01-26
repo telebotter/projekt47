@@ -11,11 +11,10 @@ def get_p_user(tg_user, update=False):
     projekt47 user (opt. update userdata i.e. names/language).
     """
     telebot_user, new = TelebotUser.objects.get_or_create(pk=tg_user.id)
-    if update:
+    if new or update:
         telebot_user.first_name = tg_user.first_name
         telebot_user.last_name = tg_user.last_name
         telebot_user.username = tg_user.username
-    if new or update:
         telebot_user.save()
     p_user, new = Projekt47User.objects.get_or_create(telebot_user=telebot_user)
     if new:
