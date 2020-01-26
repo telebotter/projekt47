@@ -35,10 +35,29 @@ python manage.py migrate
 
 ## Django Webserver
 Wenn der bot unter polling läuft erstmal nicht direkt nötig, darüber kann aber zB das Django Admin Webinterface auch für die lokale DB verwendet werden.
+Wenn die `django-telegram-bot app` nicht verwendet wird, steht auch das webinterface fuer die bots nicht zur Verfuegung. Daher
+in der `telebotter/urls.py` die Zeile 
+```
+# url(r'^', include('django_telegrambot.urls')),
+``` 
+auskommentieren.
+Folgenden Befehl zum generieren einiger css Dateien ausfuehren, damit das Admininterface etwas huebscher wird:
+```
+python manage.py collectstatic
+```
+Und einen Administrator fuer die lokale Installation hinzufuegen:
+```
+django-admin createsuperuser
+```
+Webserver starten mit
+```
+python manage.py runserver
+```
+Und den [Link](localhost:8080) Browser (auf dem selben Geraet) oeffnen.
 
 
 ## Bot starten
-Die oberen Schritte waren einmalig, vom `telebotter/` Verzeichnis aus kann der bot von jetzt an immer mit `python manage.py devbot` gestartet werden und er läuft bis er crashed (oder strg+c). Damit die richtige python umgebung genutzt wird, muss diese (falls nicht als default gesetzt) aktiviert sein. Zur sicherheit:
+Die oberen Schritte waren einmalig, vom Projektordner aus kann der bot von jetzt an immer mit `python manage.py devbot` gestartet werden und er läuft bis er crashed (oder strg+c). Damit die richtige python umgebung genutzt wird, muss diese (falls nicht als default gesetzt) aktiviert sein. Zur sicherheit:
 
 ```
 conda activate telebotter
