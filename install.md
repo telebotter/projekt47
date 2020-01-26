@@ -41,7 +41,7 @@ in der `telebotter/urls.py` die Zeile
 # url(r'^', include('django_telegrambot.urls')),
 ``` 
 auskommentieren.
-Folgenden Befehl zum generieren einiger css Dateien ausfuehren, damit das Admininterface etwas huebscher wird:
+Folgenden Befehl zum generieren einiger css Dateien ausfuehren, damit das Admininterface etwas huebscher wird (falls immernoch haesslich pruefen ob settings.py DEBUG=True ist):
 ```
 python manage.py collectstatic
 ```
