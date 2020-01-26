@@ -14,7 +14,7 @@ class Projekt47User(models.Model):
 
     def __str__(self):
         try:
-            return self.telebot_user.first_name
+            return str(self.telebot_user.first_name)
         except:
             return 'Anonym'
 
@@ -39,7 +39,7 @@ class Game(models.Model):
                                     blank=True)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 
 class Adventure(models.Model):
@@ -62,7 +62,7 @@ class Adventure(models.Model):
     text = models.TextField(verbose_name='Text')
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 
 class Addon(models.Model):
@@ -76,7 +76,7 @@ class Addon(models.Model):
     text = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 
 class Stat(models.Model):
@@ -129,7 +129,7 @@ class Character(models.Model):
     stats = models.ManyToManyField(Stat, through="CharStat")
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 
 class Session(models.Model):
@@ -160,7 +160,7 @@ class MetaCard(models.Model):
     text = models.CharField(max_length=500, default="Vollständige Erklärung der MetaKarte")
 
     def __str__(self):
-        return self.addon.name + ': ' + self.name
+        return str(self.addon.name + ': ' + self.name)
 
 
 
