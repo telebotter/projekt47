@@ -12,11 +12,13 @@ from telegram.ext import InlineQueryHandler
 from telegram.ext import MessageHandler
 from telegram.ext import CallbackQueryHandler
 from telegram.ext import Filters
+from telegram.ext import Updater  # for devmode
 from django_telegrambot.apps import DjangoTelegramBot
 from projekt47.models import *
 from projekt47 import utils as ut
 import random
 import logging
+from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
@@ -35,3 +37,15 @@ def main():
     dp = DjangoTelegramBot.getDispatcher('projekt47bot')
     dp.add_handler(CommandHandler('start', start))
     dp.add_error_handler(error)
+
+
+def devmode():
+    """ function called by manage.py in an local environment (dev mode)
+    """
+    # INIT TELEGRAM BOT
+    updater = Updater(token=settings.PROJEKT47_TOKEN)
+    dp = updater.dispatcher
+    dp.add_handler(CommandHandler('start', start))
+    dp.add_error_handler(error)
+    updater.start_polling()
+    logger.info('devmode finish')
