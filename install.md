@@ -16,16 +16,11 @@ pip install -r projekt47/requirements.txt
 
 ## Einstellungen anpassen
 In der datei `telebotter/settings.py`
-`projekt47` in die `INSTALLED_APPS` eintragen. 
-Außerdem eigenen `BOT_TOKEN` setzen. 
+`projekt47` in die `INSTALLED_APPS` eintragen (Kommentar entf.). 
+Außerdem eigenen `PROJEKT47_TOKEN` eintragen (ganz unten). 
 
 
-## DB configuration
-TODO: push migrations wenn remote db verwendet werden soll.. 
-projekt47/projekt47/settings.py mit eigenen bot tokens, pfaden und db logins versehen
-NOTE: beispiel einstellungen ohne sensible daten werden ins projekt repo geschoben.
-
-## db initialisieren
+## DB initialisieren
 ```
 python manage.py makemigrations
 python manage.py migrate
@@ -41,6 +36,11 @@ python manage.py migrate
 ## Django Webserver
 Wenn der bot unter polling läuft erstmal nicht direkt nötig, darüber kann aber zB das Django Admin Webinterface auch für die lokale DB verwendet werden.
 
-## bot in pollmode und django standalone script 
-(import django.settings, bypass django-telegram-bot, setup django env)
-telegram bot mit if __name__ funktion starten möglich ohne dass es mit django-telegram-bot main() kollidiert?
+
+## Bot starten
+Die oberen Schritte waren einmalig, vom `telebotter/` Verzeichnis aus kann der bot von jetzt an immer mit `python manage.py devbot` gestartet werden und er läuft bis er crashed (oder strg+c). Damit die richtige python umgebung genutzt wird, muss diese (falls nicht als default gesetzt) aktiviert sein. Zur sicherheit:
+
+```
+conda activate telebotter
+python manage.py devbot
+```
