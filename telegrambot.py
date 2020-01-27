@@ -16,6 +16,8 @@ from telegram.ext import Updater  # for devmode
 from django_telegrambot.apps import DjangoTelegramBot
 from projekt47.models import *
 from projekt47 import utils as ut
+from projekt47.models import *
+from uuid import uuid4
 import random
 import logging
 from django.conf import settings
@@ -23,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#   run the bot
+#   handler functions
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
@@ -48,6 +50,24 @@ def webtest(bot, update):
 def sharetest(bot, update):
     update.message.reply_text('Ich bin eine normale antwort')
 
+
+def inlinequery(bot, update):
+    """ handles the user input after @botname
+    """
+    query = update.inline_query.query
+    options = []  # collection of buttons with predefined answers
+    actions = Action.objects.filter(name__begins_with=query)
+    for act in actions:
+        options.append(
+            InlineQueryResultArticle(
+                title=act.name,
+                description=f'{act.name} Probe',
+                id=uuid4(),
+                input_message_content = InputTextMessageContent('Klettern Probe:\n🎲')
+            ))
+    update.inline_query.answer(options, cache_time=0)
+
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   run the bot
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -61,6 +81,7 @@ def add_shared_handlers(dp):
     # handlers for both methods
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('normaltest', sharetest))
+    dp.add_handler(InlineQueryHandler(inlinequery))
     dp.add_error_handler(error)
 
 
@@ -83,3 +104,4 @@ def devmode():
     dp.add_handler(CommandHandler('devtest', devtest))
     # start the update loop
     up.start_polling()
+    up.idle()
