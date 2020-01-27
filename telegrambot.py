@@ -60,6 +60,7 @@ def add_shared_handlers(dp):
     """
     # handlers for both methods
     dp.add_handler(CommandHandler('start', start))
+    dp.add_handler(CommandHandler('normaltest', sharetest))
     dp.add_error_handler(error)
 
 
