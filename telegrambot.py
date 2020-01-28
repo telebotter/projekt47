@@ -56,7 +56,7 @@ def inlinequery(bot, update):
     """
     query = update.inline_query.query
     options = []  # collection of buttons with predefined answers
-    actions = Action.objects.filter(name__begins_with=query)
+    actions = Action.objects.filter(name__startswith=query)
     for act in actions:
         options.append(
             InlineQueryResultArticle(

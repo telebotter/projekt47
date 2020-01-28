@@ -1,9 +1,14 @@
 from django.db import models
 from core.models import TelebotUser
+import json
+from telegram import InlineKeyboardButton
+from telegram import InlineKeyboardMarkup
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   telegram related models
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 
 class Projekt47User(models.Model):
     """ telegram user and its profile/settings for this bot.
@@ -11,12 +16,44 @@ class Projekt47User(models.Model):
     telebot_user = models.OneToOneField(TelebotUser,
                         related_name='projekt47_user',
                         null=True, blank=True, on_delete=models.CASCADE)
+    active_char = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         try:
             return str(self.telebot_user.first_name)
         except:
             return 'Anonym'
+
+
+class InlineMessage(models.Model):
+    """ Represents a TelegramInlineMessage with collapsable keyboard. Used to
+    keep text and keyboard of probe messages (the one with the roll button).
+    """
+    id = models.BigIntegerField(primary_key=True)  # inline_message_id
+    collapsed = models.BooleanField(default=False)  # only first line shown
+    kbd_json = models.CharField()  # json string of button data
+    # [[{text: 'btn1', data: 'probe,1,2'}]]
+    text = models.CharField(max_length=600, null=True, blank=True)
+    from_user = models.ForeignKey(Projekt47User, null=True, blank=True)
+    date_created = models.DateTimeField(auto_now_add=True)  # TODO: autonow create
+    date_edit = models.DateTimeField(auto_now=True)  # TODO: auto now touch
+
+    def __str__(self):
+        return self.id
+
+    @property
+    def keyboard(self):
+        """ property returns (collapsed) TelegramInlineKeyboard from this obj
+        """
+        btns = []
+        for row in json.loads(self.kbd.json):
+            btns.append([ InlineKeyboardButton(btn['text'],
+                                callback_data=btn['data'])
+                        for btn in row])
+            if self.collapsed:
+                break  # stop adding further rows wenn kbd is collapsed
+        return InlineKeyboardMarkup(btns)
+
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
