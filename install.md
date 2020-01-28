@@ -32,6 +32,7 @@ Falls die Tabellen für die apps noch nicht automatisch generiert wurden, noch e
 python manage.py makemigrations projekt47 core
 python manage.py migrate
 ```
+> Muss wiederholt werden, wenn sich die DB Tabellen veraendern (Bei Aenderung in models.py)
 
 ## Django Webserver
 Wenn der bot unter polling läuft erstmal nicht direkt nötig, darüber kann aber zB das Django Admin Webinterface auch für die lokale DB verwendet werden.
