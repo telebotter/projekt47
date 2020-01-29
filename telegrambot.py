@@ -7,13 +7,14 @@ from telegram import InlineKeyboardMarkup
 from telegram import InlineQueryResultArticle
 from telegram import ParseMode
 from telegram import InputTextMessageContent
+from telegram.ext import ConversationHandler
 from telegram.ext import CommandHandler
 from telegram.ext import InlineQueryHandler
 from telegram.ext import MessageHandler
 from telegram.ext import CallbackQueryHandler
 from telegram.ext import Filters
 from telegram.ext import Updater  # for devmode
-from django_telegrambot.apps import DjangoTelegramBot
+from django_telegrambot.apps import DjangoTelegramBot  # for webmode
 from projekt47.models import *
 from projekt47 import utils as ut
 from projekt47.models import *
@@ -25,12 +26,190 @@ logger = logging.getLogger(__name__)
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#   handler functions
+#  character creation / conversation frame
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# Stages
+CHOOSE_GAME, CREATE_CHARACTER, CHARACTER_NAME, OWN_NAME, BASICS, SPECIALS, END = range(7)
+# Callback data
+ONE, TWO, THREE, FOUR = range(4)
+
+
+def character_menu(bot, update):
+    """ entry point for the character select/create menu (cm_ prefix).
+    Send message on `/charakter`. Choose character.
+    NOTE: renamed from start() to character_menu() and Held to Charakter.
+    NOTE: replaced placeholder with DB queries
+    """
+    logger.debug(f'{update.message.from_user.first_name} started conversation')
+    text = 'Waehle einen Helden'
+    keyboard = [[InlineKeyboardButton('Neuer Charakter',
+                callback_data='cm_newchar')]]
+    player = ut.get_p_user(update.message.from_user)
+    chars = Character.objects.filter(owner=player)
+    for char in chars:
+        keyboard.append([
+                InlineKeyboardButton(f'{char.name}',
+                        callback_data='cm_activate,{char.id}')])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text(
+        text,
+        reply_markup=reply_markup
+    )
+    return CHOOSE_GAME  # to update state of the conversation handler
+
+
+def cm_choose_game(bot, update):
+    """ Show new options of buttons too choose a game. This is the first and
+    required step to create a new character. The character object is already
+    created here.
+    # TODO: add date_created and created to char, and use management command
+    to clean up from time to time.
+    """
+    logger.debug(f'choose game')
+    query = update.callback_query
+    player = ut.get_p_user(query.from_user)
+    logger.warn('creating new char')
+    new_char = Character.objects.create(owner=player, name='NEU')
+    new_char.save()  # need to be saved to get an ID
+    player.active_char = new_char  # keep the reference in this conversation
+    player.save()
+    games = Game.objects.all()
+    keyboard = []
+    for game in games:
+        keyboard.append([InlineKeyboardButton(f'{game.name}',
+                                                callback_data=f'cm,{game.id}')])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    bot.edit_message_text(
+        chat_id=query.message.chat_id,
+        message_id=query.message.message_id,
+        text="Wähle ein Spiel",
+        reply_markup=reply_markup
+    )
+    return CREATE_CHARACTER
+
+
+def cm_name(bot, update):
+    """ Saves previous choice (game).
+    Send some suggestions for names or read from user input.
+    """
+    query = update.callback_query
+    player = ut.get_p_user(query.from_user)
+
+    # save choice
+    game_id = int(query.data.split(',')[1])
+    game = Game.objects.get(pk=game_id)
+    player.active_char.game = game
+    player.active_char.save()
+
+    # next message
+    text = 'Wie soll der Charakter heissen? Waehle einen Namen aus den\
+Vorschlaegen, oder sende mir einen eigenen.'
+    keyboard = [[InlineKeyboardButton('Peter', callback_data='cm,peter')]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    bot.edit_message_text(
+        chat_id=query.message.chat_id,
+        message_id=query.message.message_id,
+        text=text,
+        reply_markup=reply_markup
+    )
+    return BASICS
+
+
+def cm_stats_custom_name(bot, update):
+    """ handles incomming message during name selection state.
+    Gather all stats that are available for the selected game and list them.
+    The function has to be called everytime one of the stats change.
+    #TODO: track unset stats (freie Skillpunkte).
+    """
+    logger.warn('custom name message detected')
+    text = f'Soll dein Charakter {update.message.text} heissen?'
+    reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton('Ja!',
+                    callback_data=f'cm,{update.message.text}')]])
+    update.message.reply_text(text, reply_markup=reply_markup)
+
+
+def cm_stats(bot, update):
+    """Saves previous choice (name).
+    Gather all stats that are available for the selected game and list them.
+    The function has to be called everytime one of the stats change.
+    #TODO: track unset stats (freie Skillpunkte).
+    """
+    query = update.callback_query
+    player = ut.get_p_user(query.from_user)
+
+    # save choice
+    name = query.data.split(',')[1]
+    player.active_char.name = name
+    player.active_char.save()
+
+    # next message
+    text = "Skille deinen Character nach Schulnotensystem (1: Sehr gut bis 6: \
+Ungenügend). Verbleibende Skillpunkte",
+
+    # compare available stats with registered stats, and reset if required
+    # stats = Stat.objects.filter(addons__in=player.active_char.game.addons)
+    # if len(stats) is not char.charstat_set.count():
+    #     logger.warn('Char Stats does not match the number of Game Stats')
+    #     ut.reset_charstats(char)
+    # TODO: generate keyboard and handle cb data
+    keyboard = [
+        [InlineKeyboardButton("+", callback_data='Kraft'),InlineKeyboardButton("Kraft" + " (4)", callback_data='Kraft'),InlineKeyboardButton("-", callback_data='Kraft')],
+        [InlineKeyboardButton("+", callback_data='Kraft'),InlineKeyboardButton("Geschick" + " (4)", callback_data='fdsa'),InlineKeyboardButton("-", callback_data='asdf')],
+        [InlineKeyboardButton("+", callback_data='Kraft'),InlineKeyboardButton("Intelligenz" + " (4)", callback_data='Kraft'),InlineKeyboardButton("-", callback_data='Kraft')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    bot.edit_message_text(
+        chat_id=query.message.chat_id,
+        message_id=query.message.message_id,
+        text= text,
+        reply_markup=reply_markup
+    )
+    return SPECIALS
+
+
+def cm_actions(bot, update):
+    """
+    """
+    # Get user that sent /start and log his name
+    query = update.callback_query
+    bot = context.bot
+    keyboard = [
+        [InlineKeyboardButton("Feuerball (Zauberkraft|Geschick|Willensstärke)", callback_data='Kraft')],
+         [InlineKeyboardButton("Golem beschwören", callback_data='Geschick')],
+         [InlineKeyboardButton("Gedankenlesen (Int.|Will.|Geschick)", callback_data='Intelligenz')],
+         [InlineKeyboardButton("Schummeln (Geschick|Int.)", callback_data='lol')]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    bot.edit_message_text(
+        chat_id=query.message.chat_id,
+        message_id=query.message.message_id,
+        text="Skille deinen Character",
+        reply_markup=reply_markup
+    )
+    return END
+
+
+def cm_end(bot, update):
+    """Returns `ConversationHandler.END`, which tells the
+    ConversationHandler that the conversation is over"""
+    query = update.callback_query
+    bot = context.bot
+    bot.edit_message_text(
+        chat_id=query.message.chat_id,
+        message_id=query.message.message_id,
+        text="Dein Held ist aktiviert! Bereit für ein Spiel?!"
+    )
+    return ConversationHandler.END
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#  simple handler functions
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 def error(bot, update, error):
-    logger.warn('Update "%s" caused error "%s"' % (update, error))
+    logger.exception('Update "%s" caused error "%s"' % (update, error))
 
 
 def start(bot, update):
@@ -51,19 +230,113 @@ def sharetest(bot, update):
     update.message.reply_text('Ich bin eine normale antwort')
 
 
+def activate_char(bot, update, args):
+    """ debug command, to manually select a character by id.
+    """
+    char = Character.objects.get(pk=args[0])
+    player = ut.get_p_user(update.message.from_user)
+    player.active_char = char
+    player.save()
+    update.message.reply_text(f'Charakter {char.name} aktiviert')
+
+
+def callback(bot, update):
+    """ this function is called when a button is pressed.
+    The button data is a csv string, that is split and evaluated from left to
+    right.
+    """
+    data = update.callback_query.data.split(',')
+    msg = update.callback_query.message  # only works for normal bot msgs
+    imsg_id = update.callback_query.inline_message_id # inline message ids
+    logger.warn('callback update from msg %s', msg)
+    player = ut.get_p_user(update.callback_query.from_user)
+
+    # probe buttons
+    if data[0] == 'probe':
+        #char = Character.objects.get(pk=data[1])
+        char = player.active_char
+        if char is None:
+            update.callback_query.answer(
+                    text='Kein aktiver Charakter! Schreib mir privat.',
+                    show_alert=True)
+            return
+        action = Action.objects.get(pk=data[2])
+        malus = int(data[3])
+        result = ut.probe(char, action, malus)
+        em = '❌' if result < 0 else '✅'
+        text = f'{em} {char.name} {action.name}: {result}'
+        bot.edit_message_text(text=text, inline_message_id=imsg_id,
+                            reply_markup=None)
+        return
+
+    # probe keyboard
+    elif data[0] == 'extendprobekbd':
+        logger.warn('probe keyboard extend')
+        #msg_text = msg.text
+        msg_kbd = msg.reply_markup
+        btns = msg_kbd.inline_keyboard
+        if len(btns) > 1: # collapse
+            log('collapse probe keyboard')
+            msg_kbd = InlineKeyboardMarkup([btns[0]])
+        else:
+            log('expand probe keyboard')
+            roll_btn = btns[0][0]
+            # get probe details from first button
+            cb_data = roll_btn.callback_data.split(',')
+            row_plus = []
+            row_minus = []
+            for i in range(1,5):
+                cb_data[3] = str(i)
+                row_plus.append(InlineKeyboardButton(
+                        '{:+d}'.format(i), callback_data=','.join(cb_data)))
+                cb_data[3] = str(-i)
+                row_minus.append(InlineKeyboardButton(
+                        '{:+d}'.format(-i), callback_data=','.join(cb_data)))
+            btns.append(row_plus)
+            btns.append(row_minus)
+            msg_kbd(btns)
+        # msg.edit_text(msg.text, reply_markup=msg_kbd)  # not woking with imsg
+        bot.edit_message_reply_markup(msg_kbd)
+
+
+
+
+
 def inlinequery(bot, update):
-    """ handles the user input after @botname
+    """ handles the user input after @botname. Searches available char actions
+    and turns them into a message with a roll-dice button.
+    Since we need to store the message anyways I added a keyboard property to
+    the InlineMessage model which will be created from the models json data,
+    when `models.InlineMessage.keyboard` is accessed.
+    # NOTE: imsg_id cannot be used as pk, because its not known before the
+    message is actually postet, and asa its posted, msg reference is gone.
+    # NOTE: 2) creating the message obj, before posting the message, leads to
+    one object for each suggestion for every typed character.. that would mess
+    up the db too fast. So no way around passing button data and create the obj
+    on first click.. after than the obj id can be attached to the buttons cbd.
+    # NOTE: 3) changed inlinefeedback settings, could one pass the info into
+    the InlineQueryResultArticle.id??????? This is really hackish, but could be
+    a solution in combination with feedback updates, which contain this id.
     """
     query = update.inline_query.query
+    logger.warn('query update')
+    p_user = ut.get_p_user(update.inline_query.from_user)
+    char_id = ut.get_users_active_char_id(p_user)
     options = []  # collection of buttons with predefined answers
     actions = Action.objects.filter(name__startswith=query)
+    # TODO: use chars actions instead of all
     for act in actions:
+        btns = [[InlineKeyboardButton('🎲',
+                    callback_data=f'probe,{char_id},{act.id},0'),
+                InlineKeyboardButton('🎚',
+                    callback_data='extendprobekbd')]]
         options.append(
             InlineQueryResultArticle(
                 title=act.name,
                 description=f'{act.name} Probe',
                 id=uuid4(),
-                input_message_content = InputTextMessageContent('Klettern Probe:\n🎲')
+                input_message_content = InputTextMessageContent(f'{act.name}:'),
+                reply_markup=InlineKeyboardMarkup(btns)
             ))
     update.inline_query.answer(options, cache_time=0)
 
@@ -81,6 +354,23 @@ def add_shared_handlers(dp):
     # handlers for both methods
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('normaltest', sharetest))
+    dp.add_handler(CommandHandler('activate', activate_char, pass_args=True))
+    # special handlers
+    cm_handler = ConversationHandler(
+        entry_points=[CommandHandler('cm', character_menu)],
+        states={
+            CHOOSE_GAME: [CallbackQueryHandler(cm_choose_game)],
+            CREATE_CHARACTER: [CallbackQueryHandler(cm_name)],
+            # CHARACTER_NAME: [CallbackQueryHandler(character_name)],
+            BASICS: [MessageHandler(Filters.text, cm_stats_custom_name),CallbackQueryHandler(cm_stats)],
+            # BASICS: [CallbackQueryHandler(cm_stats)],
+            SPECIALS:[CallbackQueryHandler(cm_actions)],
+            END: [CallbackQueryHandler(cm_end)]
+        },
+        fallbacks=[CommandHandler('cm', character_menu)]
+    )
+    dp.add_handler(cm_handler)
+    dp.add_handler(CallbackQueryHandler(callback))
     dp.add_handler(InlineQueryHandler(inlinequery))
     dp.add_error_handler(error)
 

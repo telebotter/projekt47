@@ -31,6 +31,21 @@ def get_p_user(tg_user, update=False):
     return p_user
 
 
+def get_users_active_char_id(user):
+    """ returns active char (id) of the user (projekt47user or tg user obj) or
+    TODO: raise GameError: NoCharSelected
+    """
+    if isinstance(user, Projekt47User):
+        p_user = user
+    else:  # expect a tg user or obj with similar parameters
+        p_user = get_p_user(user)
+    return p_user.active_char
+
+
+def reset_charstats(user):
+    return
+
+    
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   game logic
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -39,18 +54,19 @@ def get_p_user(tg_user, update=False):
 def roll(n=1):
     """ roll n dices and return their sum
     """
-    rolls = [random.randint(1,6) for _ in range(n)]
-    log(f'rolled: {rolls}')
+    rolls = [rd.randint(1,6) for _ in range(n)]
+    logger.warn(f'rolled: {rolls}')
     return sum(rolls)
 
 
 def probe(char, action, malus=0):
     """ returns sum(dice) - sum(char.stat+malus)
     """
-    cstats = char.charstats_set.filter(stat__in=action.stats)
-    log(f'Character stats: {cstats}')
+    act_stats = action.stats.all()
+    cstats = char.charstat_set.filter(stat__in=act_stats)
+    logger.warn(f'Character stats: {cstats}')
     cstats_sum = sum([s.value+malus for s in cstats])  # TODO: as query?
-    log(f'csum {cstat_sum}')
+    logger.warn(f'csum {cstats_sum}')
     res = roll(cstats.count()) - cstats_sum
-    log(f'result: {res}')
+    logger.warn(f'result: {res}')
     return res
