@@ -185,11 +185,11 @@ def cm_actions(bot, update):
         cstat.value += int(data[3])
         logger.warning(f'changed by {data[3]}')
         logger.warning(f'new stat value {cstat.value}')
-        # TODO: check limits and alert
-        # use query.answer (without alert) small notify
+        if cstat.value < 1 or cstat.value > 5:
+            # return without saving or updating the keyboard
+            query.answer('Nur Werte von 1-6 erlaubt!')
+            return SPECIALS
         cstat.save()
-        cstat_re = CharStat.objects.get(pk=data[2])
-        logger.warning(f'reloaded stat value {cstat_re.value}')
         # update message:
         markup = InlineKeyboardMarkup(ut.skill_keyboard(player.active_char))
         bot.edit_message_text(chat_id=query.message.chat_id,
