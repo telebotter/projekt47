@@ -2,8 +2,12 @@ from core.models import TelebotUser
 from projekt47.models import Projekt47User
 import random as rd
 import logging
+from telegram import InlineKeyboardButton
+from telegram import InlineKeyboardMarkup
 logger = logging.getLogger()
 
+# dont access them as string, an emoji can be more than one char!
+EMO_NUM = ['0️⃣', '1️⃣', '2️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
 
 def log(msg):
     """ shortcut for simple logging """
@@ -45,7 +49,7 @@ def get_users_active_char_id(user):
 def reset_charstats(user):
     return
 
-    
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   game logic
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -70,3 +74,17 @@ def probe(char, action, malus=0):
     res = roll(cstats.count()) - cstats_sum
     logger.warn(f'result: {res}')
     return res
+
+
+def skill_keyboard(char):
+    keyboard = []
+    for cstat in char.charstat_set.all():
+        stat = cstat.stat  # cstat contains the skill of the char, stat the meta
+        keyboard.append([
+            InlineKeyboardButton('-', callback_data=f'cm,skill,{cstat.id},-1'),
+            InlineKeyboardButton(f'{EMO_NUM[cstat.value]} {cstat.stat.abbr}',
+                                callback_data=f'cm,statalert,{cstat.stat.id}'),
+            InlineKeyboardButton('+', callback_data=f'cm,skill,{cstat.id},+1'),
+            ]
+        )
+    return keyboard

@@ -52,11 +52,8 @@ def character_menu(bot, update):
                 InlineKeyboardButton(f'{char.name}',
                         callback_data='cm_activate,{char.id}')])
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text(
-        text,
-        reply_markup=reply_markup
-    )
-    return CHOOSE_GAME  # to update state of the conversation handler
+    update.message.reply_text(text, reply_markup=reply_markup)
+    return CHOOSE_GAME
 
 
 def cm_choose_game(bot, update):
@@ -69,6 +66,8 @@ def cm_choose_game(bot, update):
     logger.debug(f'choose game')
     query = update.callback_query
     player = ut.get_p_user(query.from_user)
+
+    # init new character
     logger.warn('creating new char')
     new_char = Character.objects.create(owner=player, name='NEU')
     new_char.save()  # need to be saved to get an ID
@@ -95,12 +94,18 @@ def cm_name(bot, update):
     """
     query = update.callback_query
     player = ut.get_p_user(query.from_user)
+    char = player.active_char
 
-    # save choice
+    # set players stats and actions and save game choice
     game_id = int(query.data.split(',')[1])
     game = Game.objects.get(pk=game_id)
-    player.active_char.game = game
-    player.active_char.save()
+    char.game = game
+    # TODO: use one db query instead of inefficient loop
+    # get all stats from addons which are in game
+    for addon in char.game.addons.all():
+        for stat in addon.stats.all():
+            char.stats.add(stat, through_defaults={'value': 4})
+    char.save()
 
     # next message
     text = 'Wie soll der Charakter heissen? Waehle einen Namen aus den\
@@ -138,27 +143,15 @@ def cm_stats(bot, update):
     query = update.callback_query
     player = ut.get_p_user(query.from_user)
 
-    # save choice
+    # save choice name
     name = query.data.split(',')[1]
     player.active_char.name = name
     player.active_char.save()
 
     # next message
     text = "Skille deinen Character nach Schulnotensystem (1: Sehr gut bis 6: \
-Ungenügend). Verbleibende Skillpunkte",
-
-    # compare available stats with registered stats, and reset if required
-    # stats = Stat.objects.filter(addons__in=player.active_char.game.addons)
-    # if len(stats) is not char.charstat_set.count():
-    #     logger.warn('Char Stats does not match the number of Game Stats')
-    #     ut.reset_charstats(char)
-    # TODO: generate keyboard and handle cb data
-    keyboard = [
-        [InlineKeyboardButton("+", callback_data='Kraft'),InlineKeyboardButton("Kraft" + " (4)", callback_data='Kraft'),InlineKeyboardButton("-", callback_data='Kraft')],
-        [InlineKeyboardButton("+", callback_data='Kraft'),InlineKeyboardButton("Geschick" + " (4)", callback_data='fdsa'),InlineKeyboardButton("-", callback_data='asdf')],
-        [InlineKeyboardButton("+", callback_data='Kraft'),InlineKeyboardButton("Intelligenz" + " (4)", callback_data='Kraft'),InlineKeyboardButton("-", callback_data='Kraft')]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
+Ungenügend). Verbleibende Skillpunkte: "
+    reply_markup = InlineKeyboardMarkup(ut.skill_keyboard(player.active_char))
     bot.edit_message_text(
         chat_id=query.message.chat_id,
         message_id=query.message.message_id,
@@ -169,25 +162,58 @@ Ungenügend). Verbleibende Skillpunkte",
 
 
 def cm_actions(bot, update):
+    """ save the stat changes and update the skill keyboard. If cb data contains
+    `ok` (stat skill finished), save and post action keyboard instead.
+    returning current conversation state (SPECIALS) is like doing nothing.
     """
-    """
-    # Get user that sent /start and log his name
     query = update.callback_query
-    bot = context.bot
-    keyboard = [
-        [InlineKeyboardButton("Feuerball (Zauberkraft|Geschick|Willensstärke)", callback_data='Kraft')],
-         [InlineKeyboardButton("Golem beschwören", callback_data='Geschick')],
-         [InlineKeyboardButton("Gedankenlesen (Int.|Will.|Geschick)", callback_data='Intelligenz')],
-         [InlineKeyboardButton("Schummeln (Geschick|Int.)", callback_data='lol')]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    bot.edit_message_text(
-        chat_id=query.message.chat_id,
-        message_id=query.message.message_id,
-        text="Skille deinen Character",
-        reply_markup=reply_markup
-    )
-    return END
+    player = ut.get_p_user(query.from_user)
+    data = query.data.split(',')
+
+    # handle skill keyboard cb data
+    if not data[0] == 'cm':  # ignore unrelated callbacks
+        return SPECIALS
+    elif data[1] == 'statalert':
+        # user pressed the stat name, open description popup and stay in state
+        stat = Stat.objects.get(pk=data[2])
+        query.answer(text=f'{stat.name} ({stat.abbr}): {stat.text}', show_alert=True)
+        return SPECIALS
+    elif data[1] == 'skill':
+        # user pressed + or -
+        cstat = CharStat.objects.get(pk=data[2])
+        logger.warning(f'stat value {cstat.value}')
+        cstat.value += int(data[3])
+        logger.warning(f'changed by {data[3]}')
+        logger.warning(f'new stat value {cstat.value}')
+        # TODO: check limits and alert
+        # use query.answer (without alert) small notify
+        cstat.save()
+        cstat_re = CharStat.objects.get(pk=data[2])
+        logger.warning(f'reloaded stat value {cstat_re.value}')
+        # update message:
+        markup = InlineKeyboardMarkup(ut.skill_keyboard(player.active_char))
+        bot.edit_message_text(chat_id=query.message.chat_id,
+                            message_id=query.message.message_id,
+                            text=query.message.text,
+                            reply_markup=markup)
+        return SPECIALS  # stay in skill state
+    elif data[1] == 'finish':
+        keyboard = [
+            [InlineKeyboardButton("Feuerball (Zauberkraft|Geschick|Willensstärke)", callback_data='Kraft')],
+             [InlineKeyboardButton("Golem beschwören", callback_data='Geschick')],
+             [InlineKeyboardButton("Gedankenlesen (Int.|Will.|Geschick)", callback_data='Intelligenz')],
+             [InlineKeyboardButton("Schummeln (Geschick|Int.)", callback_data='lol')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        bot.edit_message_text(
+            chat_id=query.message.chat_id,
+            message_id=query.message.message_id,
+            text="Skille deinen Character",
+            reply_markup=reply_markup
+        )
+        return END
+    logger.warn('unknown skill callback')
+    return SPECIALS
 
 
 def cm_end(bot, update):

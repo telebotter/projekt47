@@ -75,6 +75,7 @@ class Game(models.Model):
     text = models.TextField(null=True, blank=True)
     addons = models.ManyToManyField("Addon", related_name='games', null=True,
                                     blank=True)
+    action_choices = models.IntegerField(default=3)
 
     def __str__(self):
         return str(self.name)
@@ -83,7 +84,7 @@ class Game(models.Model):
 class Adventure(models.Model):
     """ One adventure or story, that belongs to a game and is told by the GM.
     """
-    class Meta:
+    class Meta:  # namen in admin backend
         verbose_name = 'Abenteuer'
         verbose_name_plural = 'Abenteuer'
     name = models.CharField(max_length=150)
@@ -120,7 +121,7 @@ class Addon(models.Model):
 class Stat(models.Model):
     """ Character stat
     Example:
-        abbr: Int
+        abbr: In
         name: Intelligenz
         text: Intelligenz hilft die richtigen Entscheidungen zu treffen.
         addon: SciFiPi
@@ -129,6 +130,7 @@ class Stat(models.Model):
     name = models.CharField(max_length=200)
     text = models.TextField(null=True, blank=True)
     addons = models.ManyToManyField(Addon, related_name='stats')
+    
 
     def __str__(self):
         return '{} [{}]'.format(self.name,
