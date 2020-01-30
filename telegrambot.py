@@ -100,6 +100,7 @@ def cm_name(bot, update):
     game_id = int(query.data.split(',')[1])
     game = Game.objects.get(pk=game_id)
     char.game = game
+    char.skill_points = game.skill_points
     # TODO: use one db query instead of inefficient loop
     # get all stats from addons which are in game
     for addon in char.game.addons.all():
@@ -148,9 +149,10 @@ def cm_stats(bot, update):
     player.active_char.name = name
     player.active_char.save()
 
+
     # next message
-    text = "Skille deinen Character nach Schulnotensystem (1: Sehr gut bis 6: \
-Ungenügend). Verbleibende Skillpunkte: "
+    text = f"Skille deinen Character nach Schulnotensystem (1: Sehr gut bis 6: \
+Ungenügend). Verbleibende Skillpunkte: {player.active_char.skill_points}"
     keyboard = ut.skill_keyboard(player.active_char)
     reply_markup = InlineKeyboardMarkup(keyboard)
     bot.edit_message_text(
@@ -169,6 +171,7 @@ def cm_actions(bot, update):
     """
     query = update.callback_query
     player = ut.get_p_user(query.from_user)
+    char = player.active_char
     data = query.data.split(',')
 
     # handle skill keyboard cb data
@@ -181,6 +184,11 @@ def cm_actions(bot, update):
         return SPECIALS
     elif data[1] == 'skill':
         # user pressed + or -
+        char.skill_points += int(data[3])
+        if char.skill_points < 0:
+            char.skill_points -= int(data[3])
+            query.answer('Keine Punkte mehr verfuegbar!')
+        char.save()
         cstat = CharStat.objects.get(pk=data[2])
         cstat.value += int(data[3])
         if cstat.value < 1 or cstat.value > 5:
@@ -192,7 +200,7 @@ def cm_actions(bot, update):
         markup = InlineKeyboardMarkup(ut.skill_keyboard(player.active_char))
         bot.edit_message_text(chat_id=query.message.chat_id,
                             message_id=query.message.message_id,
-                            text=query.message.text,
+                            text=f"Skille deinen Character. Verbleibende Punkte: {char.skill_points}",
                             reply_markup=markup)
         return SPECIALS  # stay in skill state
     elif data[1] == 'finish':
@@ -201,7 +209,7 @@ def cm_actions(bot, update):
         bot.edit_message_text(
             chat_id=query.message.chat_id,
             message_id=query.message.message_id,
-            text="Skille deinen Character",
+            text=f"Skille deinen Character. Verbleibende Punkte: {char.skill_points}",
             reply_markup=reply_markup
         )
         return END
@@ -217,13 +225,19 @@ def cm_end(bot, update):
     query = update.callback_query
     data = query.data.split(',')
     player = ut.get_p_user(query.from_user)
+    char = player.active_char
     if data[1] == 'skillaction':
         new_action = Action.objects.get(pk=data[2])
-        player.active_char.actions.add(new_action)
+        if char.skill_points < 1:
+            query.answer("Keine Punkte mehr uebrig!")
+            return END
+        char.skill_points -= 1
+        char.actions.add(new_action)
+        char.save()
         # repost updated keyboard:
         keyboard = ut.action_keyboard(player.active_char)
         reply_markup = InlineKeyboardMarkup(keyboard)
-        text = "Skille deinen Character"
+        text = f"Skille deinen Character. Verbleibende Punkte: {char.skill_points}"
         for act in player.active_char.actions.all():
             text += f'\n  {act.name}'
         bot.edit_message_text(
@@ -234,6 +248,8 @@ def cm_end(bot, update):
         )
         return END
     elif data[1] == 'finish':
+        player.active_char.finished = True
+        player.active_char.save()
         bot.edit_message_text(
             chat_id=query.message.chat_id,
             message_id=query.message.message_id,

@@ -75,7 +75,7 @@ class Game(models.Model):
     text = models.TextField(null=True, blank=True)
     addons = models.ManyToManyField("Addon", related_name='games', null=True,
                                     blank=True)
-    action_choices = models.IntegerField(default=3)
+    skill_points = models.IntegerField(default=3)
 
     def __str__(self):
         return str(self.name)
@@ -168,6 +168,8 @@ class Character(models.Model):
                                 on_delete=models.CASCADE, null=True)
     stats = models.ManyToManyField(Stat, through="CharStat")
     actions = models.ManyToManyField(Action, related_name='characters')  # only special actions
+    skill_points = models.IntegerField(default=0)
+    finished = models.BooleanField(default=False)
 
     def __str__(self):
         return str(self.name)
