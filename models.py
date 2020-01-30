@@ -23,7 +23,7 @@ class Projekt47User(models.Model):
         try:
             return str(self.telebot_user.first_name)
         except:
-            return 'Anonym'
+            return 'Unbekannt'
 
 
 # class InlineMessage(models.Model):
@@ -61,21 +61,18 @@ class Projekt47User(models.Model):
 #   game related models
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-class Game(models.Model):
-    """ Game is the combination of the base rules with addons.
+
+class Addon(models.Model):
+    """ Set of rules, actions and stats. Every Char has to belong to one addon.
     Example:
-        name: PlanetPi
-        text: Nachdem die Erde vollständig unbewohnbar wurde, und der Mars sich
-            aufgrund alles zerstörender Stürme als schwieriger Wohnort
-            herausgestellt hat. Bricht eine Gruppe mutiger Astronauten zu einem
-            neu entdeckten Planeten `Pi` auf. Sie sind nicht die ersten dort.
-        addons: [Basis, SciFi, PlanetPi]
+      name: SciFi
+      text: Enthält Werte und Aktionen die im Weltraum nützlich sein könnten.
+            Kosmoskentniss, Navigation, Aliensprache
     """
     name = models.CharField(max_length=200)
     text = models.TextField(null=True, blank=True)
-    addons = models.ManyToManyField("Addon", related_name='games', null=True,
-                                    blank=True)
     skill_points = models.IntegerField(default=3)
+    owner = models.ForeignKey(Projekt47User, blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return str(self.name)
@@ -88,8 +85,8 @@ class Adventure(models.Model):
         verbose_name = 'Abenteuer'
         verbose_name_plural = 'Abenteuer'
     name = models.CharField(max_length=150)
-    game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    based_on = models.ForeignKey("Adventure", null=True, blank=True,
+    addon = models.ForeignKey(Addon, on_delete=models.CASCADE, null=True)
+    parent = models.ForeignKey("Adventure", null=True, blank=True,
                                         on_delete=models.SET_NULL)
     duration = models.FloatField(null=True, blank=True, verbose_name='Dauer')
     player_min = models.IntegerField(null=True, blank=True,
@@ -99,20 +96,6 @@ class Adventure(models.Model):
     preview = models.CharField(max_length=1024, null=True, blank=True,
                                         verbose_name='Kurzbeschreibung')
     text = models.TextField(verbose_name='Text')
-
-    def __str__(self):
-        return str(self.name)
-
-
-class Addon(models.Model):
-    """ Set of rules, actions and stats
-    Example:
-      name: SciFi
-      text: Enthält Werte und Aktionen die im Weltraum nützlich sein könnten.
-            Kosmoskentniss, Navigation, Aliensprache
-    """
-    name = models.CharField(max_length=200)
-    text = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return str(self.name)
@@ -129,12 +112,12 @@ class Stat(models.Model):
     abbr = models.CharField(max_length=4)
     name = models.CharField(max_length=200)
     text = models.TextField(null=True, blank=True)
-    addons = models.ManyToManyField(Addon, related_name='stats')
+    #addons = models.ManyToManyField(Addon, related_name='stats', blank=True)
+    addon = models.ForeignKey(Addon, related_name='stat', blank=True, null=True, on_delete=models.SET_NULL)
     emoji = models.CharField(max_length=8, null=True, blank=True)
 
     def __str__(self):
-        return '{} [{}]'.format(self.name,
-                        ', '.join([a.name for a in self.addons.all()]))
+        return '{} [{}]'.format(self.name, self.addon.name)
 
 
 class Action(models.Model):
@@ -144,7 +127,7 @@ class Action(models.Model):
     results are possible but number must match the placeholders in answer.
     """
     name = models.CharField(max_length=200)
-    addons = models.ManyToManyField(Addon, related_name='actions')
+    addon = models.ForeignKey(Addon, related_name='action', blank=True, null=True, on_delete=models.SET_NULL)
     stats = models.ManyToManyField(Stat, related_name='actions',
                                 null=True, blank=True)
     formula = models.CharField(max_length=200, null=True, blank=True) # '1*W+4'
@@ -164,10 +147,10 @@ class Character(models.Model):
     owner = models.ForeignKey(Projekt47User, on_delete=models.SET_NULL,
                                 null=True, blank=True)
     name = models.CharField(max_length=200)
-    game = models.ForeignKey(Game, related_name='characters',
+    addon = models.ForeignKey(Addon, related_name='characters',
                                 on_delete=models.CASCADE, null=True)
     stats = models.ManyToManyField(Stat, through="CharStat")
-    actions = models.ManyToManyField(Action, related_name='characters')  # only special actions
+    actions = models.ManyToManyField(Action, related_name='characters', blank=True)  # only special actions
     skill_points = models.IntegerField(default=0)
     finished = models.BooleanField(default=False)
 
@@ -183,8 +166,8 @@ class Session(models.Model):
     owner = models.ForeignKey(Projekt47User, on_delete=models.SET_NULL,
                                 null=True, blank=True)
     name = models.CharField(max_length=200, default='unnamed')
-    game = models.ForeignKey(Game, related_name='sessions',
-                                on_delete=models.CASCADE)
+    addon = models.ForeignKey(Addon, related_name='sessions',
+                                on_delete=models.SET_NULL, null=True)
     characters = models.ManyToManyField(Character, related_name='sessions',
                                 null=True, blank=True)
 
@@ -230,20 +213,28 @@ class CharStat(models.Model):
     >>> stat.chars.set([char1, char2], through_defaults={'value': 10)})
     ```
     """
+    class Meta:
+        verbose_name = 'Charakterwert'
+        verbose_name_plural = 'Charakterwerte'
+        constraints = [
+            models.UniqueConstraint(fields=['char', 'stat'], name='uni_skill')
+        ]
     char = models.ForeignKey(Character, on_delete=models.CASCADE)
     stat = models.ForeignKey(Stat, on_delete=models.CASCADE)
-    value = models.IntegerField(default=0)
+    value = models.IntegerField(default=4)
 
     def __str__(self):
         return '{}: {} {:+d}'.format(self.char.name, self.stat.name, self.value)
 
 
-class CharAction(models.Model):
-    """ character specific information of an action, like level/skill
-    """
-    char = models.ForeignKey(Character, on_delete=models.CASCADE)
-    act = models.ForeignKey(Action, on_delete=models.CASCADE)
-    value = models.IntegerField(default=0)
-
-    def __str__(self):
-        return '{}: {} {:+d}'.format(self.char.name, self.act.name, self.value)
+# class CharAction(models.Model):
+#     """ character specific information of an action, like level/skill
+#     not used yet.. chars either can use an ability or cant.. they scale with
+#     stats no action skill.
+#     """
+#     char = models.ForeignKey(Character, on_delete=models.CASCADE)
+#     act = models.ForeignKey(Action, on_delete=models.CASCADE)
+#     value = models.IntegerField(default=0)
+#
+#     def __str__(self):
+#         return '{}: {} {:+d}'.format(self.char.name, self.act.name, self.value)
