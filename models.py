@@ -149,7 +149,7 @@ class Character(models.Model):
     name = models.CharField(max_length=200)
     addon = models.ForeignKey(Addon, related_name='characters',
                                 on_delete=models.CASCADE, null=True)
-    stats = models.ManyToManyField(Stat, through="CharStat")
+    stats = models.ManyToManyField(Stat, through="CharStat", limit_choices_to={'addon': addon})
     actions = models.ManyToManyField(Action, related_name='characters', blank=True)  # only special actions
     skill_points = models.IntegerField(default=0)
     finished = models.BooleanField(default=False)
@@ -217,7 +217,7 @@ class CharStat(models.Model):
         verbose_name = 'Charakterwert'
         verbose_name_plural = 'Charakterwerte'
         constraints = [
-            models.UniqueConstraint(fields=['char', 'stat'], name='uni_skill')
+            models.UniqueConstraint(fields=['char', 'stat'], name='uni_skill'),
         ]
     char = models.ForeignKey(Character, on_delete=models.CASCADE)
     stat = models.ForeignKey(Stat, on_delete=models.CASCADE)
