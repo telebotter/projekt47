@@ -151,7 +151,8 @@ def cm_stats(bot, update):
     # next message
     text = "Skille deinen Character nach Schulnotensystem (1: Sehr gut bis 6: \
 Ungenügend). Verbleibende Skillpunkte: "
-    reply_markup = InlineKeyboardMarkup(ut.skill_keyboard(player.active_char))
+    keyboard = ut.skill_keyboard(player.active_char)
+    reply_markup = InlineKeyboardMarkup(keyboard)
     bot.edit_message_text(
         chat_id=query.message.chat_id,
         message_id=query.message.message_id,
@@ -181,10 +182,7 @@ def cm_actions(bot, update):
     elif data[1] == 'skill':
         # user pressed + or -
         cstat = CharStat.objects.get(pk=data[2])
-        logger.warning(f'stat value {cstat.value}')
         cstat.value += int(data[3])
-        logger.warning(f'changed by {data[3]}')
-        logger.warning(f'new stat value {cstat.value}')
         if cstat.value < 1 or cstat.value > 5:
             # return without saving or updating the keyboard
             query.answer('Nur Werte von 1-6 erlaubt!')
@@ -198,13 +196,8 @@ def cm_actions(bot, update):
                             reply_markup=markup)
         return SPECIALS  # stay in skill state
     elif data[1] == 'finish':
-        keyboard = [
-            [InlineKeyboardButton("Feuerball (Zauberkraft|Geschick|Willensstärke)", callback_data='Kraft')],
-             [InlineKeyboardButton("Golem beschwören", callback_data='Geschick')],
-             [InlineKeyboardButton("Gedankenlesen (Int.|Will.|Geschick)", callback_data='Intelligenz')],
-             [InlineKeyboardButton("Schummeln (Geschick|Int.)", callback_data='lol')]
-        ]
-        reply_markup = InlineKeyboardMarkup(keyboard)
+        keyboard = ut.action_keyboard(player.active_char)
+        reply_markup= InlineKeyboardMarkup(keyboard)
         bot.edit_message_text(
             chat_id=query.message.chat_id,
             message_id=query.message.message_id,
@@ -212,21 +205,43 @@ def cm_actions(bot, update):
             reply_markup=reply_markup
         )
         return END
-    logger.warn('unknown skill callback')
+    logger.warn('unhandled callback in cm_actions')
     return SPECIALS
 
 
 def cm_end(bot, update):
     """Returns `ConversationHandler.END`, which tells the
-    ConversationHandler that the conversation is over"""
+    ConversationHandler that the conversation is over
+    TODO: loop the action skill keyboard until finish is pressed
+    """
     query = update.callback_query
-    bot = context.bot
-    bot.edit_message_text(
-        chat_id=query.message.chat_id,
-        message_id=query.message.message_id,
-        text="Dein Held ist aktiviert! Bereit für ein Spiel?!"
-    )
-    return ConversationHandler.END
+    data = query.data.split(',')
+    player = ut.get_p_user(query.from_user)
+    if data[1] == 'skillaction':
+        new_action = Action.objects.get(pk=data[2])
+        player.active_char.actions.add(new_action)
+        # repost updated keyboard:
+        keyboard = ut.action_keyboard(player.active_char)
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        text = "Skille deinen Character"
+        for act in player.active_char.actions.all():
+            text += f'\n  {act.name}'
+        bot.edit_message_text(
+            chat_id=query.message.chat_id,
+            message_id=query.message.message_id,
+            text=text,
+            reply_markup=reply_markup
+        )
+        return END
+    elif data[1] == 'finish':
+        bot.edit_message_text(
+            chat_id=query.message.chat_id,
+            message_id=query.message.message_id,
+            text="Dein Held ist bereit für ein Spiel. Bist du es auch?!"
+        )
+        return ConversationHandler.END
+    logger.warn('unhandled callback in cm_end')
+    return END  # in case nothing happend stay in state
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

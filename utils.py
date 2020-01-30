@@ -1,5 +1,6 @@
 from core.models import TelebotUser
 from projekt47.models import Projekt47User
+from projekt47.models import Action
 import random as rd
 import logging
 from telegram import InlineKeyboardButton
@@ -76,7 +77,7 @@ def probe(char, action, malus=0):
     return res
 
 
-def skill_keyboard(char):
+def skill_keyboard(char, finish_btn=True):
     keyboard = []
     for cstat in char.charstat_set.all():
         stat = cstat.stat  # cstat contains the skill of the char, stat the meta
@@ -87,4 +88,43 @@ def skill_keyboard(char):
             InlineKeyboardButton('+', callback_data=f'cm,skill,{cstat.id},+1'),
             ]
         )
+    if finish_btn:
+        keyboard.append([InlineKeyboardButton('Fertig',
+                        callback_data='cm,finish')])
+    return keyboard
+
+
+def action_keyboard(char, finish_btn=True):
+    """ return keyboard with actions, a char can learn.
+    NOTE: The used method is neither elegant nor efficient.
+    TODO: Rewrite db queries (i.e. characters_not_contain=char)
+    TODO: Filter addons but probably check #8 first.
+    ISSUES: #8
+    """
+    keyboard = []
+    actions = Action.objects.filter(special=True)
+    known_actions = char.actions.all()
+    # filter all actions  # TODO: do this with db query
+    for action in actions:
+        if action in known_actions:
+            continue
+        # filter out requirements not met
+        met = True
+        for s in action.stats.all():
+            cstat = char.charstat_set.get(stat=s)
+            if not cstat:
+                logger.warn(f'{char.name} hat kein {s.name}')
+                met = False
+                break  # dont cehck other stats
+            elif cstat.value > 4:
+                logger.warn(f'{char.name} hat zu wenig {s.name}')
+                met = False
+                break
+        if not met:
+            continue
+        keyboard.append([InlineKeyboardButton(action.name,
+                        callback_data=f'cm,skillaction,{action.id}')])
+    if finish_btn:
+        keyboard.append([InlineKeyboardButton('Fertig',
+                        callback_data='cm,finish')])
     return keyboard

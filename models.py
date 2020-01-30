@@ -130,7 +130,7 @@ class Stat(models.Model):
     name = models.CharField(max_length=200)
     text = models.TextField(null=True, blank=True)
     addons = models.ManyToManyField(Addon, related_name='stats')
-    
+    emoji = models.CharField(max_length=8, null=True, blank=True)
 
     def __str__(self):
         return '{} [{}]'.format(self.name,
@@ -167,6 +167,7 @@ class Character(models.Model):
     game = models.ForeignKey(Game, related_name='characters',
                                 on_delete=models.CASCADE, null=True)
     stats = models.ManyToManyField(Stat, through="CharStat")
+    actions = models.ManyToManyField(Action, related_name='characters')  # only special actions
 
     def __str__(self):
         return str(self.name)
