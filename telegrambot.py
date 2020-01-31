@@ -1,7 +1,3 @@
-#myapp/telegrambot.py
-# Example code for telegrambot.py module
-
-
 from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
 from telegram import InlineQueryResultArticle
@@ -30,7 +26,7 @@ logger = logging.getLogger(__name__)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # Stages
-CHOOSE_GAME, CREATE_CHARACTER, CHARACTER_NAME, OWN_NAME, BASICS, SPECIALS, END = range(7)
+CHOOSE_ADDON, CREATE_CHARACTER, CHARACTER_NAME, OWN_NAME, BASICS, SPECIALS, END = range(7)
 # Callback data
 ONE, TWO, THREE, FOUR = range(4)
 
@@ -53,17 +49,17 @@ def character_menu(bot, update):
                         callback_data='cm_activate,{char.id}')])
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text(text, reply_markup=reply_markup)
-    return CHOOSE_GAME
+    return CHOOSE_ADDON
 
 
-def cm_choose_game(bot, update):
-    """ Show new options of buttons too choose a game. This is the first and
+def cm_choose_addon(bot, update):
+    """ Show new options of buttons too choose a addon. This is the first and
     required step to create a new character. The character object is already
     created here.
     # TODO: add date_created and created to char, and use management command
     to clean up from time to time.
     """
-    logger.debug(f'choose game')
+    logger.debug(f'choose addon')
     query = update.callback_query
     player = ut.get_p_user(query.from_user)
 
@@ -73,11 +69,11 @@ def cm_choose_game(bot, update):
     new_char.save()  # need to be saved to get an ID
     player.active_char = new_char  # keep the reference in this conversation
     player.save()
-    games = Game.objects.all()
+    addons = Addon.objects.all()
     keyboard = []
-    for game in games:
-        keyboard.append([InlineKeyboardButton(f'{game.name}',
-                                                callback_data=f'cm,{game.id}')])
+    for addon in addons:
+        keyboard.append([InlineKeyboardButton(f'{addon.name}',
+                                                callback_data=f'cm,{addon.id}')])
     reply_markup = InlineKeyboardMarkup(keyboard)
     bot.edit_message_text(
         chat_id=query.message.chat_id,
@@ -89,23 +85,20 @@ def cm_choose_game(bot, update):
 
 
 def cm_name(bot, update):
-    """ Saves previous choice (game).
+    """ Saves previous choice (addon).
     Send some suggestions for names or read from user input.
     """
     query = update.callback_query
     player = ut.get_p_user(query.from_user)
     char = player.active_char
 
-    # set players stats and actions and save game choice
-    game_id = int(query.data.split(',')[1])
-    game = Game.objects.get(pk=game_id)
-    char.game = game
-    char.skill_points = game.skill_points
-    # TODO: use one db query instead of inefficient loop
-    # get all stats from addons which are in game
-    for addon in char.game.addons.all():
-        for stat in addon.stats.all():
-            char.stats.add(stat, through_defaults={'value': 4})
+    # set players stats and actions and save addon choice
+    addon_id = int(query.data.split(',')[1])
+    addon = Addon.objects.get(pk=addon_id)
+    char.addon = addon
+    char.skill_points = addon.skill_points
+    for stat in addon.stats.all():
+        char.stats.add(stat, through_defaults={'value': 4})
     char.save()
 
     # next message
@@ -124,7 +117,7 @@ Vorschlaegen, oder sende mir einen eigenen.'
 
 def cm_stats_custom_name(bot, update):
     """ handles incomming message during name selection state.
-    Gather all stats that are available for the selected game and list them.
+    Gather all stats that are available for the selected addon and list them.
     The function has to be called everytime one of the stats change.
     #TODO: track unset stats (freie Skillpunkte).
     """
@@ -137,7 +130,7 @@ def cm_stats_custom_name(bot, update):
 
 def cm_stats(bot, update):
     """Saves previous choice (name).
-    Gather all stats that are available for the selected game and list them.
+    Gather all stats that are available for the selected addon and list them.
     The function has to be called everytime one of the stats change.
     #TODO: track unset stats (freie Skillpunkte).
     """
@@ -253,7 +246,8 @@ def cm_end(bot, update):
         bot.edit_message_text(
             chat_id=query.message.chat_id,
             message_id=query.message.message_id,
-            text="Dein Held ist bereit für ein Spiel. Bist du es auch?!"
+            text=f"<b>{char.name}</b> ist bereit für ein Abenteuer. Bist du es auch?!\n\n {ut.char_to_text(char, name=False)}",
+            parse_mode='HTML'
         )
         return ConversationHandler.END
     logger.warn('unhandled callback in cm_end')
@@ -416,7 +410,7 @@ def add_shared_handlers(dp):
     cm_handler = ConversationHandler(
         entry_points=[CommandHandler('cm', character_menu)],
         states={
-            CHOOSE_GAME: [CallbackQueryHandler(cm_choose_game)],
+            CHOOSE_ADDON: [CallbackQueryHandler(cm_choose_addon)],
             CREATE_CHARACTER: [CallbackQueryHandler(cm_name)],
             # CHARACTER_NAME: [CallbackQueryHandler(character_name)],
             BASICS: [MessageHandler(Filters.text, cm_stats_custom_name),CallbackQueryHandler(cm_stats)],

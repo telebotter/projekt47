@@ -13,6 +13,9 @@ from telegram import InlineKeyboardMarkup
 class Projekt47User(models.Model):
     """ telegram user and its profile/settings for this bot.
     """
+    class Meta:
+        verbose_name = 'Spieler'
+        verbose_name_plural = 'Spieler'
     telebot_user = models.OneToOneField(TelebotUser,
                         related_name='projekt47_user',
                         null=True, blank=True, on_delete=models.CASCADE)
@@ -69,6 +72,9 @@ class Addon(models.Model):
       text: Enthält Werte und Aktionen die im Weltraum nützlich sein könnten.
             Kosmoskentniss, Navigation, Aliensprache
     """
+    class Meta:
+        verbose_name = 'Addon'
+        verbose_name_plural = 'Addons'
     name = models.CharField(max_length=200)
     text = models.TextField(null=True, blank=True)
     skill_points = models.IntegerField(default=3)
@@ -109,11 +115,15 @@ class Stat(models.Model):
         text: Intelligenz hilft die richtigen Entscheidungen zu treffen.
         addon: SciFiPi
     """
+    class Meta:
+        verbose_name = 'Wert'
+        verbose_name_plural = 'Werte'
     abbr = models.CharField(max_length=4)
     name = models.CharField(max_length=200)
     text = models.TextField(null=True, blank=True)
+    ressource = models.BooleanField(default=False)
     #addons = models.ManyToManyField(Addon, related_name='stats', blank=True)
-    addon = models.ForeignKey(Addon, related_name='stat', blank=True, null=True, on_delete=models.SET_NULL)
+    addon = models.ForeignKey(Addon, related_name='stats', blank=True, null=True, on_delete=models.SET_NULL)
     emoji = models.CharField(max_length=8, null=True, blank=True)
 
     def __str__(self):
@@ -126,6 +136,9 @@ class Action(models.Model):
     answer string like `result = answer.format(evaluate(formular))`. Multiple
     results are possible but number must match the placeholders in answer.
     """
+    class Meta:
+        verbose_name = 'Aktion'
+        verbose_name_plural = 'Aktionen'
     name = models.CharField(max_length=200)
     addon = models.ForeignKey(Addon, related_name='action', blank=True, null=True, on_delete=models.SET_NULL)
     stats = models.ManyToManyField(Stat, related_name='actions',
@@ -136,21 +149,23 @@ class Action(models.Model):
                                 verbose_name='Skill nötig')
 
     def __str__(self):
-        return '{} [{}]'.format(self.name,
-                        ', '.join([a.name for a in self.addons.all()]))
+        return '{} [{}]'.format(self.name, self.addon.name)
 
 
 class Character(models.Model):
     """ A players character, belongs to an addon and can have stats with values,
     and actions with values/level through relations.
     """
+    class Meta:
+        verbose_name = 'Charakter'
+        verbose_name_plural = 'Charaktere'
     owner = models.ForeignKey(Projekt47User, on_delete=models.SET_NULL,
                                 null=True, blank=True)
     name = models.CharField(max_length=200)
     addon = models.ForeignKey(Addon, related_name='characters',
                                 on_delete=models.CASCADE, null=True)
     stats = models.ManyToManyField(Stat, through="CharStat", limit_choices_to={'addon': addon})
-    actions = models.ManyToManyField(Action, related_name='characters', blank=True)  # only special actions
+    actions = models.ManyToManyField(Action, related_name='characters', related_query_name='characters', blank=True)  # only special actions
     skill_points = models.IntegerField(default=0)
     finished = models.BooleanField(default=False)
 

@@ -5,9 +5,9 @@ from projekt47.models import *
 # Register your models here.
 admin.site.register(Projekt47User)
 admin.site.register(Adventure)
-admin.site.register(Stat)
-admin.site.register(Action)
-#admin.site.register(CharStat)
+# admin.site.register(Stat)
+# admin.site.register(Action)
+# admin.site.register(CharStat)
 
 
 # admin.site.register(Character)
