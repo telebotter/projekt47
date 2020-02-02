@@ -1,18 +1,12 @@
+> Vorraussetzung fuer folgende Schritte, ist das das [Telebotterprojekt mit Pythonumgebung](https://github.com/telebotter/telebotter/install.md)
+
 ## Projekt lokal Klonen
 
 ```
-git clone git@github.com:telebotter/telebotter.git
 cd telebotter
 git clone git@github.com:telebotter/projekt47.git
 ```
 
-## Python Umgebung
-
-```
-conda create telebotter python=3.6.8 pip
-conda activate telebotter
-pip install -r projekt47/requirements.txt
-```
 
 ## Einstellungen anpassen
 In der datei `telebotter/settings.py`
