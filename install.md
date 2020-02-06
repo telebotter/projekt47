@@ -1,4 +1,4 @@
-> Vorraussetzung fuer folgende Schritte, ist das das [Telebotterprojekt mit Pythonumgebung](https://github.com/telebotter/telebotter/install.md)
+> Vorraussetzung fuer folgende Schritte, ist das das [Telebotterprojekt mit Pythonumgebung](https://github.com/telebotter/telebotter/blob/master/install.md)
 
 ## Projekt lokal Klonen
 
