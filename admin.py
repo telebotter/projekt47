@@ -21,7 +21,9 @@ class CharStatInline(admin.TabularInline):
 class CharacterAdmin(admin.ModelAdmin):
     inlines = (CharStatInline,)
 
-#admin.site.register(Addon)
+
+# define inline layouts to add them in other models admin form
+
 class StatInline(admin.TabularInline):
     model = Stat
     extra = 1
@@ -32,6 +34,11 @@ class ActionInline(admin.TabularInline):
     extra = 1
 
 
+class MetaCardInline(admin.TabularInline):
+    model = MetaCard
+    extra = 1
+
+
 @admin.register(Addon)
 class AddonAdmin(admin.ModelAdmin):
-    inlines = [StatInline, ActionInline]
+    inlines = [StatInline, ActionInline, MetaCardInline]

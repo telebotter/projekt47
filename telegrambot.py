@@ -18,8 +18,12 @@ from uuid import uuid4
 import random
 import logging
 from django.conf import settings
+import os
+import pwd
 logger = logging.getLogger(__name__)
 
+logger.debug('loading projekt47 module by user: {}'.format(
+                                        pwd.getpwuid(os.getuid()).pw_name))
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #  character creation / conversation frame
@@ -429,6 +433,7 @@ def add_shared_handlers(dp):
 def main():
     """ function called by django-telegram-bot automatically on webhook
     """
+    logger.warning('main function called')
     dp = DjangoTelegramBot.getDispatcher('projekt47bot')
     add_shared_handlers(dp)
     # add webhook specific handlers below

@@ -195,10 +195,13 @@ class MetaCard(models.Model):
     greifen nicht in die bot logik ein ermöglichen dem spieler aber bestimmte
     andere handlungen.. die er/gm ausspielen muss..
     """
+    class Meta:
+        verbose_name = 'Metakarte'
+        verbose_name_plural = 'Metakarten'
     addon = models.ForeignKey(Addon, related_name='meta_cards', on_delete=models.CASCADE)
     name = models.CharField(max_length=200, default='Meta Karte')
-    short = models.CharField(max_length=400, default='Kurzbeschreibung der MetaKarte (log, tooltip)') # log text and shord des
-    text = models.CharField(max_length=500, default="Vollständige Erklärung der MetaKarte")
+    short = models.CharField(max_length=400, default='Kurzbeschreibung der Metakarte (log, tooltip)') # log text and shord des
+    text = models.CharField(max_length=500, default="Vollständige Erklärung der Metakarte")
 
     def __str__(self):
         return str(self.addon.name + ': ' + self.name)
