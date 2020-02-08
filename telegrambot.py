@@ -11,7 +11,6 @@ from telegram.ext import CallbackQueryHandler
 from telegram.ext import Filters
 from telegram.ext import Updater  # for devmode
 from django_telegrambot.apps import DjangoTelegramBot  # for webmode
-from projekt47.models import *
 from projekt47 import utils as ut
 from projekt47.models import *
 from uuid import uuid4
@@ -20,10 +19,12 @@ import logging
 from django.conf import settings
 import os
 import pwd
-logger = logging.getLogger(__name__)
 
-logger.debug('loading projekt47 module by user: {}'.format(
-                                        pwd.getpwuid(os.getuid()).pw_name))
+# Run when import
+logger = logging.getLogger(__name__)
+os_user = pwd.getpwuid(os.getuid()).pw_name
+logger.debug(f'loading projekt47 module by user: {os_user}')
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #  character creation / conversation frame
@@ -77,7 +78,7 @@ def cm_choose_addon(bot, update):
     keyboard = []
     for addon in addons:
         keyboard.append([InlineKeyboardButton(f'{addon.name}',
-                                                callback_data=f'cm,{addon.id}')])
+                                            callback_data=f'cm,{addon.id}')])
     reply_markup = InlineKeyboardMarkup(keyboard)
     bot.edit_message_text(
         chat_id=query.message.chat_id,
@@ -125,7 +126,7 @@ def cm_stats_custom_name(bot, update):
     The function has to be called everytime one of the stats change.
     #TODO: track unset stats (freie Skillpunkte).
     """
-    logger.warn('custom name message detected')
+    logger.warning('custom name message detected')
     text = f'Soll dein Charakter {update.message.text} heissen?'
     reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton('Ja!',
                     callback_data=f'cm,{update.message.text}')]])
@@ -177,7 +178,8 @@ def cm_actions(bot, update):
     elif data[1] == 'statalert':
         # user pressed the stat name, open description popup and stay in state
         stat = Stat.objects.get(pk=data[2])
-        query.answer(text=f'{stat.name} ({stat.abbr}): {stat.text}', show_alert=True)
+        query.answer(text=f'{stat.name} ({stat.abbr}): {stat.text}',
+                        show_alert=True)
         return SPECIALS
     elif data[1] == 'skill':
         # user pressed + or -
@@ -197,7 +199,8 @@ def cm_actions(bot, update):
         markup = InlineKeyboardMarkup(ut.skill_keyboard(player.active_char))
         bot.edit_message_text(chat_id=query.message.chat_id,
                             message_id=query.message.message_id,
-                            text=f"Skille deinen Character. Verbleibende Punkte: {char.skill_points}",
+                            text=f"Skille deinen Character. Verbleibende \
+                                Punkte: {char.skill_points}",
                             reply_markup=markup)
         return SPECIALS  # stay in skill state
     elif data[1] == 'finish':
@@ -206,11 +209,12 @@ def cm_actions(bot, update):
         bot.edit_message_text(
             chat_id=query.message.chat_id,
             message_id=query.message.message_id,
-            text=f"Skille deinen Character. Verbleibende Punkte: {char.skill_points}",
+            text=f"Skille deinen Character. Verbleibende Punkte: \
+                {char.skill_points}",
             reply_markup=reply_markup
         )
         return END
-    logger.warn('unhandled callback in cm_actions')
+    logger.warning('unhandled callback in cm_actions')
     return SPECIALS
 
 
