@@ -32,7 +32,8 @@ logger.debug(f'loading projekt47 module by user: {os_user}')
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # Stages
-CHOOSE_ADDON, CREATE_CHARACTER, CHARACTER_NAME, OWN_NAME, BASICS, SPECIALS, END = range(7)
+CHOOSE_ADDON, CREATE_CHARACTER, CHARACTER_NAME, OWN_NAME, BASICS = range(5)
+SPECIALS, END = (5, 6)
 # Callback data
 ONE, TWO, THREE, FOUR = range(4)
 
@@ -108,9 +109,11 @@ def cm_name(bot, update):
     char.save()
 
     # next message
-    text = 'Wie soll der Charakter heissen? Waehle einen Namen aus den\
+    text = 'Wie soll der Charakter heissen? Waehle einen Namen aus den \
 Vorschlaegen, oder sende mir einen eigenen.'
-    keyboard = [[InlineKeyboardButton('Peter', callback_data='cm,peter')]]
+    default_names = DefaultName.objects.filter(addon=addon).order_by('?')[:4]
+    keyboard = [[InlineKeyboardButton(n.name, callback_data=f'cm,{n.name}')]
+                for n in default_names]
     reply_markup = InlineKeyboardMarkup(keyboard)
     bot.edit_message_text(
         chat_id=query.message.chat_id,
