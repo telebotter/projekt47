@@ -8,7 +8,7 @@ from telegram import InlineKeyboardMarkup
 logger = logging.getLogger()
 
 # dont access them as string, an emoji can be more than one char!
-EMO_NUM = ['0️⃣', '1️⃣', '2️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
+EMO_NUM = ['0️⃣', '1️⃣', '2️⃣','3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
 
 def log(msg):
     """ shortcut for simple logging """

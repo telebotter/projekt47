@@ -10,6 +10,7 @@ from telegram.ext import MessageHandler
 from telegram.ext import CallbackQueryHandler
 from telegram.ext import Filters
 from telegram.ext import Updater  # for devmode
+from telegram.error import BadRequest  # for example edit message not changed
 from django_telegrambot.apps import DjangoTelegramBot  # for webmode
 from projekt47 import utils as ut
 from projekt47.models import *
@@ -69,7 +70,7 @@ def cm_choose_addon(bot, update):
     player = ut.get_p_user(query.from_user)
 
     # init new character
-    logger.warn('creating new char')
+    logger.info(f'{player} is creating a new char')
     new_char = Character.objects.create(owner=player, name='NEU')
     new_char.save()  # need to be saved to get an ID
     player.active_char = new_char  # keep the reference in this conversation
@@ -147,7 +148,6 @@ def cm_stats(bot, update):
     player.active_char.name = name
     player.active_char.save()
 
-
     # next message
     text = f"Skille deinen Character nach Schulnotensystem (1: Sehr gut bis 6: \
 Ungenügend). Verbleibende Skillpunkte: {player.active_char.skill_points}"
@@ -172,38 +172,64 @@ def cm_actions(bot, update):
     char = player.active_char
     data = query.data.split(',')
 
-    # handle skill keyboard cb data
+    # if button not from character manu, log and return
     if not data[0] == 'cm':  # ignore unrelated callbacks
+        logger.warning(f'unhandled button pressed in skill view: {data}')
         return SPECIALS
+
+    # user pressed the stat button
     elif data[1] == 'statalert':
         # user pressed the stat name, open description popup and stay in state
         stat = Stat.objects.get(pk=data[2])
         query.answer(text=f'{stat.name} ({stat.abbr}): {stat.text}',
                         show_alert=True)
         return SPECIALS
+
+    # user pressed +1 or -1 (data[3]) for a stat (data[2])
     elif data[1] == 'skill':
-        # user pressed + or -
-        char.skill_points += int(data[3])
-        if char.skill_points < 0:
-            char.skill_points -= int(data[3])
+        delta = int(data[3])  # button data +1 or -1
+        stat_id = int(data[2])  # which stat should be changed
+        # check free SP available
+        new_sp = char.skill_points + delta
+        if new_sp < 0:
+            # return without saving or updating anything
             query.answer('Keine Punkte mehr verfuegbar!')
-        char.save()
-        cstat = CharStat.objects.get(pk=data[2])
-        cstat.value += int(data[3])
-        if cstat.value < 1 or cstat.value > 5:
-            # return without saving or updating the keyboard
-            query.answer('Nur Werte von 1-6 erlaubt!')
             return SPECIALS
+        # check stat limits (>0, <6)
+        cstat = CharStat.objects.get(pk=data[2])
+        logger.info(f'Old Stat: {cstat.value}')
+        new_stat = cstat.value + delta
+        logger.info(f'New Stat: {new_stat}')
+        if new_stat < 1 or new_stat > 5:
+            # return without saving or updating anything
+            query.answer('Nur Werte von 1-5 erlaubt!')
+            return SPECIALS
+        # change values in db
+        char.skill_points = new_sp
+        char.save()
+        logger.info(f'{player} free SP changed ({delta}): {new_sp}')
+        cstat.value = new_stat
         cstat.save()
-        # update message:
-        markup = InlineKeyboardMarkup(ut.skill_keyboard(player.active_char))
-        bot.edit_message_text(chat_id=query.message.chat_id,
-                            message_id=query.message.message_id,
-                            text=f"Skille deinen Character. Verbleibende \
-                                Punkte: {char.skill_points}",
-                            reply_markup=markup)
+        logger.info(f'{player} skilled ({delta}): {cstat}')
+        # update message view:
+        char.refresh_from_db()  # cb stats changed
+        markup = InlineKeyboardMarkup(ut.skill_keyboard(char))
+        try:
+            bot.edit_message_text(chat_id=query.message.chat_id,
+                                message_id=query.message.message_id,
+                                text=f'Skille deinen Character. Verbleibende \
+                                        Punkte: {char.skill_points}',
+                                reply_markup=markup)
+        except BadRequest as e:
+            logger.debug(e)
+            query.answer("Keine Aenderung festgestellt!")
         return SPECIALS  # stay in skill state
+
+    # user finished skill (stats) go to skill actions
     elif data[1] == 'finish':
+        # TODO: is active_char updated from db or already cached?
+        # To be sure remove probably rerferenced character:
+        player.refresh_from_db(fields=['active_char'])
         keyboard = ut.action_keyboard(player.active_char)
         reply_markup= InlineKeyboardMarkup(keyboard)
         bot.edit_message_text(
@@ -214,7 +240,8 @@ def cm_actions(bot, update):
             reply_markup=reply_markup
         )
         return END
-    logger.warning('unhandled callback in cm_actions')
+    # every button should be processed:
+    logger.error('cbdata does not match anything: {data}')
     return SPECIALS
 
 
@@ -258,7 +285,7 @@ def cm_end(bot, update):
             parse_mode='HTML'
         )
         return ConversationHandler.END
-    logger.warn('unhandled callback in cm_end')
+    logger.warning('unhandled callback in cm_end')
     return END  # in case nothing happend stay in state
 
 
@@ -268,7 +295,8 @@ def cm_end(bot, update):
 
 
 def error(bot, update, error):
-    logger.exception('Update "%s" caused error "%s"' % (update, error))
+    logger.exception(f'PTB Handled Error (update in bot log): {error}')
+    logger.info(f'update that caused an error: {string(update)}')
 
 
 def start(bot, update):
@@ -304,11 +332,18 @@ def callback(bot, update):
     The button data is a csv string, that is split and evaluated from left to
     right.
     """
-    data = update.callback_query.data.split(',')
-    msg = update.callback_query.message  # only works for normal bot msgs
-    imsg_id = update.callback_query.inline_message_id # inline message ids
-    logger.warn('callback update from msg %s', msg)
+    query = update.callback_query
+    data = query.data.split(',')
+    msg = query.message  # only works for normal bot msgs
+    imsg_id = query.inline_message_id # inline message ids
+    logger.debug('callback update from msg %s', msg)
     player = ut.get_p_user(update.callback_query.from_user)
+
+    # cm data should not reach this handler:
+    if data[0] == 'cm':
+        logger.warning(f'{player} pressed cm button without conversation')
+        query.answer('Buttons nichtmehr aktuell.')
+        return
 
     # probe buttons
     if data[0] == 'probe':
@@ -330,7 +365,7 @@ def callback(bot, update):
 
     # probe keyboard
     elif data[0] == 'extendprobekbd':
-        logger.warn('probe keyboard extend')
+        logger.warning('probe keyboard extend')
         #msg_text = msg.text
         msg_kbd = msg.reply_markup
         btns = msg_kbd.inline_keyboard
@@ -358,9 +393,6 @@ def callback(bot, update):
         bot.edit_message_reply_markup(msg_kbd)
 
 
-
-
-
 def inlinequery(bot, update):
     """ handles the user input after @botname. Searches available char actions
     and turns them into a message with a roll-dice button.
@@ -378,7 +410,7 @@ def inlinequery(bot, update):
     a solution in combination with feedback updates, which contain this id.
     """
     query = update.inline_query.query
-    logger.warn('query update')
+    logger.debug('query update')
     p_user = ut.get_p_user(update.inline_query.from_user)
     char_id = ut.get_users_active_char_id(p_user)
     options = []  # collection of buttons with predefined answers
@@ -437,7 +469,7 @@ def add_shared_handlers(dp):
 def main():
     """ function called by django-telegram-bot automatically on webhook
     """
-    logger.warning('main function called')
+    logger.debug('main function called')
     dp = DjangoTelegramBot.getDispatcher('projekt47bot')
     add_shared_handlers(dp)
     # add webhook specific handlers below

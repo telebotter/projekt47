@@ -207,6 +207,18 @@ class MetaCard(models.Model):
         return str(self.addon.name + ': ' + self.name)
 
 
+class Names(models.Model):
+    """ Namens vorschlaege bei der generierung von characteren.
+    """
+    name = models.CharField(max_length=80, default='Noname')
+    addon = models.ForeignKey(Addon,
+        related_name='default_names',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True)
+
+    def __str__(self):
+        return str(self.addon.name + ': ' + self.name)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   relations between classes
