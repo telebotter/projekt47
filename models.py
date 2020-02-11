@@ -207,7 +207,7 @@ class MetaCard(models.Model):
         return str(self.addon.name + ': ' + self.name)
 
 
-class Names(models.Model):
+class DefaultName(models.Model):
     """ Namens vorschlaege bei der generierung von characteren.
     """
     name = models.CharField(max_length=80, default='Noname')

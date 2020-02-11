@@ -8,7 +8,7 @@ admin.site.register(Adventure)
 # admin.site.register(Stat)
 # admin.site.register(Action)
 # admin.site.register(CharStat)
-
+admin.site.register(DefaultName)
 
 # admin.site.register(Character)
 
