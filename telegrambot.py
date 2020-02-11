@@ -35,6 +35,7 @@ logger.debug(f'loading projekt47 module by user: {os_user}')
 CHOOSE_ADDON, CREATE_CHARACTER, CHARACTER_NAME, OWN_NAME, BASICS = range(5)
 SPECIALS, END = (5, 6)
 # Callback data
+#testkommentar
 ONE, TWO, THREE, FOUR = range(4)
 
 
