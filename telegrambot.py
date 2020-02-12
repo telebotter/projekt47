@@ -13,6 +13,7 @@ from telegram.ext import Updater  # for devmode
 from telegram.error import BadRequest  # for example edit message not changed
 from django_telegrambot.apps import DjangoTelegramBot  # for webmode
 from projekt47 import utils as ut
+from projekt47.commands import commands
 from projekt47.models import *
 from uuid import uuid4
 import random
@@ -35,7 +36,6 @@ logger.debug(f'loading projekt47 module by user: {os_user}')
 CHOOSE_ADDON, CREATE_CHARACTER, CHARACTER_NAME, OWN_NAME, BASICS = range(5)
 SPECIALS, END = (5, 6)
 # Callback data
-#testkommentar
 ONE, TWO, THREE, FOUR = range(4)
 
 
@@ -446,10 +446,19 @@ def add_shared_handlers(dp):
     production (webhook). DTB dispatcher is a subclass of the PTB dp, they share
     most of their methods and can be used in a similar way.
     """
+
     # handlers for both methods
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('normaltest', sharetest))
     dp.add_handler(CommandHandler('activate', activate_char, pass_args=True))
+
+    # add handlers for commands.py
+    for cmd in commands:
+        pass_args = getattr(cmd, 'args', False)  # will be obsolete with context
+        for alias in cmd.aliases:
+            logger.info(f'adding {alias}')
+            dp.add_handler(CommandHandler(alias, cmd, pass_args=pass_args))
+
     # special handlers
     cm_handler = ConversationHandler(
         entry_points=[CommandHandler('cm', character_menu)],
@@ -457,7 +466,8 @@ def add_shared_handlers(dp):
             CHOOSE_ADDON: [CallbackQueryHandler(cm_choose_addon)],
             CREATE_CHARACTER: [CallbackQueryHandler(cm_name)],
             # CHARACTER_NAME: [CallbackQueryHandler(character_name)],
-            BASICS: [MessageHandler(Filters.text, cm_stats_custom_name),CallbackQueryHandler(cm_stats)],
+            BASICS: [MessageHandler(Filters.text, cm_stats_custom_name),
+                        CallbackQueryHandler(cm_stats)],
             # BASICS: [CallbackQueryHandler(cm_stats)],
             SPECIALS:[CallbackQueryHandler(cm_actions)],
             END: [CallbackQueryHandler(cm_end)]
