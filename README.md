@@ -2,9 +2,8 @@
 
 [![Kontakt](https://img.shields.io/badge/Telegram-Kontakt-blue)](https://tg.me/projekt47bot)
 ![language](https://img.shields.io/github/languages/top/telebotter/projekt47)
-![closed issues](https://img.shields.io/github/issues-closed/telebotter/projekt47)
+[![closed issues](https://img.shields.io/github/issues-closed/telebotter/projekt47)](https://github.com/telebotter/projekt47/issues?q=is%3Aissue+is%3Aclosed)
 ![Website](https://img.shields.io/website?url=https%3A%2F%2Ftelebotter.sarbot.de/projekt47/)
-[![GitHub stars](https://img.shields.io/github/stars/telebotter/projekt47)](https://github.com/telebotter/projekt47/stargazers)
 
 
 Ein Telegrambot bzw. Toolkit für Textbasierte Rollenspiele, inspiriert von Würfel- und Pen&Paper Spielen, mit anpassbaren Regelwerken. Anleitungen zum Spielen finden sich auf der [Website](https://telebotter.sarbot.de/projekt47/) oder ueber den `/hilfe` Befehl in der [Unterhaltung mit dem Bot](https://tg.me/projekt47bot). Das erstellen von Spielern ist [bisher]( https://github.com/telebotter/projekt47/issues/19) Entwicklern ueber das [Admin-Interface](https://telebotter.sarbot.de/admin/projekt47/) vorbehalten.
