@@ -20,12 +20,12 @@ import random
 import logging
 from django.conf import settings
 import os
-import pwd
-
-# Run when import
+# import pwd
+#
+# # Run when import
 logger = logging.getLogger(__name__)
-os_user = pwd.getpwuid(os.getuid()).pw_name
-logger.debug(f'loading projekt47 module by user: {os_user}')
+# os_user = pwd.getpwuid(os.getuid()).pw_name
+# logger.debug(f'loading projekt47 module by user: {os_user}')
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -305,7 +305,7 @@ def cm_end(bot, update):
 
 def error(bot, update, error):
     logger.exception(f'PTB Handled Error (update in bot log): {error}')
-    logger.info(f'update that caused an error: {string(update)}')
+    logger.info(f'update that caused an error: {str(update)}')
 
 
 def start(bot, update):
@@ -534,7 +534,7 @@ def main():
     """ function called by django-telegram-bot automatically on webhook
     """
     logger.debug('main function called')
-    dp = DjangoTelegramBot.getDispatcher('projekt47bot')
+    dp = DjangoTelegramBot.getDispatcher('telebotterbot')
     add_shared_handlers(dp)
     # add webhook specific handlers below
     dp.add_handler(CommandHandler('webtest', webtest))
