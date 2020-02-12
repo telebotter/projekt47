@@ -4,7 +4,7 @@ import json
 from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
 
-
+EMO_NUM = ['0️⃣', '1️⃣', '2️⃣','3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   telegram related models
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -168,9 +168,37 @@ class Character(models.Model):
     actions = models.ManyToManyField(Action, related_name='characters', related_query_name='characters', blank=True)  # only special actions
     skill_points = models.IntegerField(default=0)
     finished = models.BooleanField(default=False)
+    text = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return str(self.name)
+
+    def info_text(self, html=True, name=True):
+        """ returns a string with optional name/addon as header. It contains the
+        characters description Char.text and can be used as message text.
+        """
+        b = '<b>{}</b>' if html else '{}'
+        i = '<i>{}</i>' if html else '{}'
+        header = b.format(self.name) + '\n'
+        header += i.format(str(self.addon)) + '\n\n'
+        text = header if name else ''
+        text += str(self.text)
+        return text
+
+    def info_stats(self, html=True, name=True):
+        """ creates an overview of the characters stats as text, ready to be
+        used in a message.
+        """
+        bold = '<b>{}</b>' if html else '{}'
+        n = bold.format(self.name)
+        text = n+'\n\n' if name else ''
+        text += 'Eigenschaften:\n'
+        for s in self.charstat_set.all():
+            text += ' ' + EMO_NUM[s.value] + ' ' + s.stat.name + '\n'
+        text += '\nSpezialaktionen:'
+        for a in self.actions.all():
+            text += f"\n *️⃣ {a.name}"
+        return text
 
 
 class Session(models.Model):

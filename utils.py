@@ -141,17 +141,18 @@ def action_keyboard(char, finish_btn=True):
     return keyboard
 
 
-def char_to_text(char, name=True, html=True):
-    """ creates an overview of the character as text, ready to be used in
-    a message.
-    """
-    bold = '<b>{}</b>' if html else '{}'
-    n = bold.format(char.name)
-    text = n+'\n\n' if name else ''
-    text += 'Eigenschaften:\n'
-    for s in char.charstat_set.all():
-        text += ' ' + EMO_NUM[s.value] + ' ' + s.stat.name + '\n'
-    text += '\nSpezialaktionen:'
-    for a in char.actions.all():
-        text += f"\n *️⃣ {a.name}"
-    return text
+# def char_to_text(char, name=True, html=True):
+#     """ creates an overview of the character as text, ready to be used in
+#     a message.
+#     # TODO: this can basically be replaced by a method in the model class
+#     """
+#     bold = '<b>{}</b>' if html else '{}'
+#     n = bold.format(char.name)
+#     text = n+'\n\n' if name else ''
+#     text += 'Eigenschaften:\n'
+#     for s in char.charstat_set.all():
+#         text += ' ' + EMO_NUM[s.value] + ' ' + s.stat.name + '\n'
+#     text += '\nSpezialaktionen:'
+#     for a in char.actions.all():
+#         text += f"\n *️⃣ {a.name}"
+#     return text

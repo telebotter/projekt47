@@ -239,8 +239,8 @@ def cm_actions(bot, update):
         bot.edit_message_text(
             chat_id=query.message.chat_id,
             message_id=query.message.message_id,
-            text=f"Skille deinen Character. Verbleibende Punkte: \
-                {char.skill_points}",
+            text=(  f"Skille deinen Character.\n"
+                    f"Verbleibende Punkte: {char.skill_points}"),
             reply_markup=reply_markup
         )
         return END
@@ -269,7 +269,8 @@ def cm_end(bot, update):
         # repost updated keyboard:
         keyboard = ut.action_keyboard(player.active_char)
         reply_markup = InlineKeyboardMarkup(keyboard)
-        text = f"Skille deinen Character. Verbleibende Punkte: {char.skill_points}"
+        text = (f"Skille deinen Character.\n"
+                f"Verbleibende Punkte: {char.skill_points}")
         for act in player.active_char.actions.all():
             text += f'\n  {act.name}'
         bot.edit_message_text(
@@ -285,7 +286,8 @@ def cm_end(bot, update):
         bot.edit_message_text(
             chat_id=query.message.chat_id,
             message_id=query.message.message_id,
-            text=f"<b>{char.name}</b> ist bereit für ein Abenteuer. Bist du es auch?!\n\n {ut.char_to_text(char, name=False)}",
+            text=(f"<b>{char.name}</b> ist bereit für ein Abenteuer.\n"
+                f"Bist du es auch?!\n\n {char.info_stats(name=False)}"),
             parse_mode='HTML'
         )
         return ConversationHandler.END
