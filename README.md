@@ -1,5 +1,6 @@
-# projekt47bot
+# @projekt47bot
 
+[![Kontakt](https://img.shields.io/badge/Telegram-Kontakt-blue)](https://tg.me/projekt47bot)
 ![language](https://img.shields.io/github/languages/top/telebotter/projekt47)
 ![closed issues](https://img.shields.io/github/issues-closed/telebotter/projekt47)
 ![Website](https://img.shields.io/website?url=https%3A%2F%2Ftelebotter.sarbot.de/projekt47/)
