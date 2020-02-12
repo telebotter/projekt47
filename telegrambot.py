@@ -244,6 +244,9 @@ def cm_actions(bot, update):
             reply_markup=reply_markup
         )
         return END
+    elif data[1] == 'back':
+        pass
+
     # every button should be processed:
     logger.error('cbdata does not match anything: {data}')
     return SPECIALS
