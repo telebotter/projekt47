@@ -398,6 +398,30 @@ def callback(bot, update):
         # msg.edit_text(msg.text, reply_markup=msg_kbd)  # not woking with imsg
         bot.edit_message_reply_markup(msg_kbd)
 
+    # xp collection
+    elif data[0] == 'xpbox':
+        # TODO: this has to be in conversation handler (possible for groups?)
+        # TODO: to make sure old messages cannot be clicked any longer or click
+        # TODO: state has to be saved in context/db.. VALIDATION NEEDED
+        char = player.active_char
+        if char is None:
+            update.callback_query.answer(
+                    text='Kein aktiver Charakter! Schreib mir privat.',
+                    show_alert=True)
+            return
+        logger.warning(f'{player} versucht Skillpunkte einzusammeln.')
+        if data[1] == 'single':
+            xp = int(data[2])
+            char.skill_points += xp
+            char.save()
+            text = f'{char.name} hat {xp} Erfahrungspunkte erhalten.'
+            bot.edit_message_text(text=text, inline_message_id=imsg_id,
+                                reply_markup=None)
+            return
+        if data[1] == 'group':
+            query.answer('Fuer Gruppenloot fehlt noch ein konkreter Ansatz.')
+            return
+
 
 def inlinequery(bot, update):
     """ handles the user input after @botname. Searches available char actions
@@ -434,6 +458,27 @@ def inlinequery(bot, update):
                 id=uuid4(),
                 input_message_content = InputTextMessageContent(f'{act.name}:'),
                 reply_markup=InlineKeyboardMarkup(btns)
+            ))
+    if query.startswith('xp'):
+        try:
+            xp = int(query.split('xp')[-1])
+        except ValueError:
+            xp = 1
+        options.append(
+            InlineQueryResultArticle(
+                title='Spieler XP',
+                description=f'{xp} Skillpunkte vergeben',
+                id=uuid4(),
+                input_message_content = InputTextMessageContent('Erfahrungspunkte fuer einen Spieler.'),
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('nehmen', callback_data=f'xpbox,single,{xp}')]])
+            ))
+        options.append(
+            InlineQueryResultArticle(
+                title='Gruppen XP',
+                description=f'{xp} Skillpunkte an alle vergeben',
+                id=uuid4(),
+                input_message_content = InputTextMessageContent('Erfahrungspunkte fuer alle Spieler.'),
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('nehmen', callback_data=f'xpbox,group,{xp}')]])
             ))
     update.inline_query.answer(options, cache_time=0)
 

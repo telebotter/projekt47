@@ -36,7 +36,7 @@ def add_sp(bot, update, args):
     char.save()
     msg = f'Skillpunkte von {char.name} angepasst: {old_sp} -> {new_sp}'
     update.message.reply_text(msg, quote=False)
-add_sp.text = 'Gibt deinem activen Charakter einen oder mehrere Skillpunkte.'
+add_sp.text = 'Gib deinem activen Charakter einen oder mehrere Skillpunkte.'
 add_sp.aliases = ['addskillpoints', 'addskillpoint',
                 'skillpunkt', 'skillpunkte', 'xp']
 add_sp.args = True  # TODO: this should be obsolet when context is used.
