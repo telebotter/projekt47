@@ -83,6 +83,9 @@ def probe(char, action, malus=0):
 
 
 def skill_keyboard(char, finish_btn=True):
+    """ return keybaord with available charstats and skill buttons with required
+    callback data to identify and change them.
+    """
     keyboard = []
     for cstat in char.charstat_set.filter(stat__ressource=False):
         stat = cstat.stat  # cstat contains the skill of the char, stat the meta
@@ -93,17 +96,21 @@ def skill_keyboard(char, finish_btn=True):
             InlineKeyboardButton('+', callback_data=f'cm,skill,{cstat.id},+1'),
             ]
         )
+    footer = []
     if finish_btn:
-        keyboard.append([InlineKeyboardButton('Fertig',
+        footer.append([InlineKeyboardButton('Fertig',
                         callback_data='cm,finish')])
+    if back_btn:
+        footer.append([InlineKeyboardButton('🔙',
+                        callback_data='cm,back')])
+    if len(footer)>0:
+        keyboard.append(footer)
     return keyboard
 
 
-def action_keyboard(char, finish_btn=True):
-    """ return keyboard with actions, a char can learn.
-    NOTE: The used method is neither elegant nor efficient.
-    TODO: Rewrite db queries (i.e. characters_not_contain=char)
-    ISSUES: #8
+def action_keyboard(char, finish_btn=True, back_btn=True):
+    """ return keyboard with actions, a char can learn. Callback data is
+    cm,skillaction,<action_id>.
     """
     keyboard = []
     logger.warn('action kbd')
@@ -112,47 +119,16 @@ def action_keyboard(char, finish_btn=True):
     logger.warn(actions.count())
     actions = actions.exclude(characters__in=[char])
     logger.warn(actions.count())
-
-    # TODO: do this with db query
-    # known_actions = char.actions.all()
-    # filter all actions
     for action in actions:
-        # if action in known_actions:
-        #     continue
-        # # filter out requirements not met
-        # met = True
-        # for s in action.stats.all():
-        #     cstat = char.charstat_set.get(stat=s)
-        #     if not cstat:
-        #         logger.warn(f'{char.name} hat kein {s.name}')
-        #         met = False
-        #         break  # dont cehck other stats
-        #     elif cstat.value > 4:
-        #         logger.warn(f'{char.name} hat zu wenig {s.name}')
-        #         met = False
-        #         break
-        # if not met:
-        #     continue
         keyboard.append([InlineKeyboardButton(action.name,
                         callback_data=f'cm,skillaction,{action.id}')])
+    footer = []
     if finish_btn:
-        keyboard.append([InlineKeyboardButton('Fertig',
+        footer.append([InlineKeyboardButton('Fertig',
                         callback_data='cm,finish')])
+    if back_btn:
+        footer.append([InlineKeyboardButton('🔙',
+                        callback_data='cm,back')])
+    if len(footer)>0:
+        keyboard.append(footer)
     return keyboard
-
-
-# def char_to_text(char, name=True, html=True):
-#     """ creates an overview of the character as text, ready to be used in
-#     a message.
-#     # TODO: this can basically be replaced by a method in the model class
-#     """
-#     bold = '<b>{}</b>' if html else '{}'
-#     n = bold.format(char.name)
-#     text = n+'\n\n' if name else ''
-#     text += 'Eigenschaften:\n'
-#     for s in char.charstat_set.all():
-#         text += ' ' + EMO_NUM[s.value] + ' ' + s.stat.name + '\n'
-#     text += '\nSpezialaktionen:'
-#     for a in char.actions.all():
-#         text += f"\n *️⃣ {a.name}"
-#     return text

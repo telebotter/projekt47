@@ -11,6 +11,7 @@ from telegram.ext import CallbackQueryHandler
 from telegram.ext import Filters
 from telegram.ext import Updater  # for devmode
 from telegram.error import BadRequest  # for example edit message not changed
+from django.conf import settings
 from django_telegrambot.apps import DjangoTelegramBot  # for webmode
 from projekt47 import utils as ut
 from projekt47.commands import commands
@@ -534,7 +535,8 @@ def main():
     """ function called by django-telegram-bot automatically on webhook
     """
     logger.debug('main function called')
-    dp = DjangoTelegramBot.getDispatcher('telebotterbot')
+    # dp = DjangoTelegramBot.getDispatcher('telebotterbot')
+    dp = DjangoTelegramBot.getDispatcher(settings.PROJEKT47_BOT)
     add_shared_handlers(dp)
     # add webhook specific handlers below
     dp.add_handler(CommandHandler('webtest', webtest))
