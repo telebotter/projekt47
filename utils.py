@@ -1,14 +1,14 @@
 from core.models import TelebotUser
 from projekt47.models import Projekt47User
 from projekt47.models import Action
+from projekt47.constants import *
 import random as rd
 import logging
 from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
 logger = logging.getLogger()
 
-# dont access them as string, an emoji can be more than one char!
-EMO_NUM = ['0️⃣', '1️⃣', '2️⃣','3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
+
 
 def log(msg):
     """ shortcut for simple logging """
@@ -38,7 +38,6 @@ def get_p_user(tg_user, update=False):
 
 def get_users_active_char_id(user):
     """ returns active char (id) of the user (projekt47user or tg user obj) or
-    TODO: raise GameError: NoCharSelected
     """
     if isinstance(user, Projekt47User):
         p_user = user
@@ -80,10 +79,22 @@ def probe(char, action, malus=0):
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   messages and strings
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+def add_footer(keyboard, back, finish, cb='cm'):
+    """ return list of button(s) or None, pass cb to use other callback prefix.
+    """
+    footer = []
+    if back:
+        footer.append(InlineKeyboardButton(BTN['back'],
+                        callback_data='cm,back'))
+    if finish:
+        footer.append(InlineKeyboardButton(BTN['next'],
+                        callback_data='cm,finish'))
+    if len(footer) > 0:
+        keyboard.append(footer)
 
 
-def skill_keyboard(char, finish_btn=True):
-    """ return keybaord with available charstats and skill buttons with required
+def skill_keyboard(char, finish_btn=True, back_btn=True):
+    """ return keybaord with available charstats an skill buttons with required
     callback data to identify and change them.
     """
     keyboard = []
@@ -91,20 +102,12 @@ def skill_keyboard(char, finish_btn=True):
         stat = cstat.stat  # cstat contains the skill of the char, stat the meta
         keyboard.append([
             InlineKeyboardButton('-', callback_data=f'cm,skill,{cstat.id},-1'),
-            InlineKeyboardButton(f'{EMO_NUM[cstat.value]} {cstat.stat.abbr}',
+            InlineKeyboardButton(f'{EMOJ_NUM[cstat.value]} {cstat.stat.abbr}',
                                 callback_data=f'cm,statalert,{cstat.stat.id}'),
             InlineKeyboardButton('+', callback_data=f'cm,skill,{cstat.id},+1'),
             ]
         )
-    footer = []
-    if finish_btn:
-        footer.append([InlineKeyboardButton('Fertig',
-                        callback_data='cm,finish')])
-    if back_btn:
-        footer.append([InlineKeyboardButton('🔙',
-                        callback_data='cm,back')])
-    if len(footer)>0:
-        keyboard.append(footer)
+    add_footer(keyboard, back_btn, finish_btn)
     return keyboard
 
 
@@ -122,13 +125,5 @@ def action_keyboard(char, finish_btn=True, back_btn=True):
     for action in actions:
         keyboard.append([InlineKeyboardButton(action.name,
                         callback_data=f'cm,skillaction,{action.id}')])
-    footer = []
-    if finish_btn:
-        footer.append([InlineKeyboardButton('Fertig',
-                        callback_data='cm,finish')])
-    if back_btn:
-        footer.append([InlineKeyboardButton('🔙',
-                        callback_data='cm,back')])
-    if len(footer)>0:
-        keyboard.append(footer)
+    add_footer(keyboard, back_btn, finish_btn)
     return keyboard

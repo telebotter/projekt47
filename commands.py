@@ -1,6 +1,7 @@
 import logging
 import datetime as dt
 from projekt47 import utils as ut
+from projekt47.constants import *
 logger = logging.getLogger(__name__)
 
 
@@ -24,7 +25,7 @@ def add_sp(bot, update, args):
     player = ut.get_p_user(update.message.from_user)
     char = player.active_char
     if not char:
-        update.message.reply_text('Du hast keinen Charakter aktiviert.')
+        update.message.reply_text(MSG['nochar'])
     old_sp = char.skill_points
     try:
         delta = int(args[0])
