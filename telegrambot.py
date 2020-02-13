@@ -53,8 +53,11 @@ def character_menu(bot, update):
     player = ut.get_p_user(update.message.from_user)
     chars = Character.objects.filter(owner=player)
     for char in chars:
+        btn = f'{char.name}'
+        if char == player.active_char:
+            btn = f'✔️ {char.name.upper()}'
         keyboard.append([
-                InlineKeyboardButton(f'{char.name}',
+                InlineKeyboardButton(btn,
                         callback_data='cm_activate,{char.id}')])
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text(text, reply_markup=reply_markup)
@@ -114,7 +117,7 @@ def cm_name(bot, update):
     text = 'Wie soll der Charakter heissen? Waehle einen Namen aus den \
 Vorschlaegen, oder sende mir einen eigenen.'
     default_names = DefaultName.objects.filter(addon=addon).order_by('?')[:4]
-    keyboard = [[InlineKeyboardButton(n.name, callback_data=f'cm,{n.name}')]
+    keyboard = [[InlineKeyboardButton(n.name, callback_data=f'cm,name,{n.name}')]
                 for n in default_names]
     reply_markup = InlineKeyboardMarkup(keyboard)
     bot.edit_message_text(
@@ -135,7 +138,7 @@ def cm_stats_custom_name(bot, update):
     logger.warning('custom name message detected')
     text = f'Soll dein Charakter {update.message.text} heissen?'
     reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton('Ja!',
-                    callback_data=f'cm,{update.message.text}')]])
+                    callback_data=f'cm,name,{update.message.text}')]])
     update.message.reply_text(text, reply_markup=reply_markup)
 
 
@@ -147,12 +150,12 @@ def cm_stats(bot, update):
     """
     query = update.callback_query
     player = ut.get_p_user(query.from_user)
-
+    data = query.data.split(',')
     # save choice name
-    name = query.data.split(',')[1]
-    player.active_char.name = name
-    player.active_char.save()
-
+    if data[1] == 'name':
+        name = data[2]
+        player.active_char.name = name
+        player.active_char.save()
     # next message
     text = f"Skille deinen Character nach Schulnotensystem (1: Sehr gut bis 6: \
 Ungenügend). Verbleibende Skillpunkte: {player.active_char.skill_points}"
@@ -205,9 +208,9 @@ def cm_actions(bot, update):
         logger.info(f'Old Stat: {cstat.value}')
         new_stat = cstat.value + delta
         logger.info(f'New Stat: {new_stat}')
-        if new_stat < 1 or new_stat > 5:
+        if new_stat < 1 or new_stat > 6:
             # return without saving or updating anything
-            query.answer('Nur Werte von 1-5 erlaubt!')
+            query.answer('Nur Werte von 1-6 erlaubt!')
             return SPECIALS
         # change values in db
         char.skill_points = new_sp
@@ -246,7 +249,8 @@ def cm_actions(bot, update):
         )
         return END
     elif data[1] == 'back':
-        pass
+        query.answer('Sorry den Namen kannst du nichtmehr aendern!')
+        return SPECIALS # dont go back to name
 
     # every button should be processed:
     logger.error('cbdata does not match anything: {data}')
@@ -295,6 +299,16 @@ def cm_end(bot, update):
             parse_mode='HTML'
         )
         return ConversationHandler.END
+    elif data[1] == 'back':
+        text = f'Nochaml Werte Skillen. Verbleibnde Skillpunkte {char.skill_points}'
+        reply_markup = InlineKeyboardMarkup(ut.skill_keyboard(player.active_char))
+        bot.edit_message_text(
+            chat_id=query.message.chat_id,
+            message_id=query.message.message_id,
+            text=text,
+            reply_markup=reply_markup
+        )
+        return SPECIALS
     logger.warning('unhandled callback in cm_end')
     return END  # in case nothing happend stay in state
 

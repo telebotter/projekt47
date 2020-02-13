@@ -18,28 +18,15 @@ BTN = {
 
 MSG = {
 'nochar': 'Du hast keinen Charakter aktiviert.',
+'norule': 'Dazu hab ich leider keine Regel gefunden.',
+'rules': 'Dies sind die allgemeinen Regeln. Fuer details lies auf der <a href="{}">Website</a> nach oder schreibe zum Beispiel <code>/regeln 1</code>\n\n{}',
 }
 
 RULES = [
 { # 1
 'short': 'Der Spielleiter (SL) hat die oberste Entscheidungsgewalt!',
-'long': (
-    'Der Spielleiter (SL) hat die oberste Entscheidungsgewalt! ',
-    'Sie/er bestimmt was passiert. Aus dieser Macht erwaechst auch die ',
-    'Verantwortung, den Spielern ein moeglichst tolles Spielerlebnis zu ',
-    'bereiten. '
-    ),
+'long': 'Der Spielleiter (SL) hat die oberste Entscheidungsgewalt! Er bestimmt was passiert. Aus dieser Macht erwaechst auch die Verantwortung, den Spielern ein moeglichst tolles Spielerlebnis zu bereiten. ',
 },{ # 2
-'sort': 'Aktionen werden der Reihe nach ausgefuehrt!',
-'long': (
-    'Damit jeder Spieler die Gelegenheit erhaelt seinen Charakter in jeder ',
-    'Situation auszuspielen, koennen Spieler der Reihe nach (Uhrzeigersinn) ',
-    'ankuendigen, welche Aktionen sie ausfuehren moechten. Der Spielleiter ',
-    'fordert ggf. dazu auf entsprechende Proben auszufuehren. Haben sich alle ',
-    'Spieler geaeussert, fuehrt der Spielleiter die Aktionen der NPCs aus. ',
-    'In Situationen in denen es logisch erscheint, dass die Charaktere ',
-    'in unterschiedlicher Reihenfolge agieren, (zB wenn sie mit ',
-    'unterschiedlicher Geschwindigkeit auf ein Ziel zu stuermen) sollte dies ',
-    'entsprechend ausgespielt werden.'
-    )
+'short': 'Aktionen werden der Reihe nach ausgefuehrt!',
+'long': 'Damit jeder Spieler die Gelegenheit erhaelt seinen Charakter in jeder Situation auszuspielen, koennen Spieler der Reihe nach (Uhrzeigersinn) ankuendigen, welche Aktionen sie ausfuehren moechten. Der Spielleiter fordert ggf. dazu auf entsprechende Proben auszufuehren. Haben sich alle Spieler geaeussert, fuehrt der Spielleiter die Aktionen der NPCs aus. In Situationen in denen es logisch erscheint, dass die Charaktere in unterschiedlicher Reihenfolge agieren, (zB wenn sie mit unterschiedlicher Geschwindigkeit auf ein Ziel zu stuermen) sollte dies entsprechend ausgespielt werden.'
 }]

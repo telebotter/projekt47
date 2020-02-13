@@ -89,3 +89,26 @@ set_story.text = 'Schreibe einen kurzen Text zu deinem Charakter'
 set_story.aliases = ['story', 'text', 'beschreibung']
 set_story.args = True
 commands.append(set_story)
+
+
+def show_rules(bot, update, args):
+    """ posted alle regeln in kurz oder die nummer aus args in lang.
+    """
+    # handle arguments
+    if len(args) > 0:
+        try:
+            text = RULES[int(args[0])-1]['long']
+            update.message.reply_text(text)
+        except:
+            update.message.reply_text(MSG['norule'])
+        finally:
+            return
+    # no argument
+    rules = [EMOJ_NUM[i+1] + ' ' + ru['short'] for i, ru in enumerate(RULES)]
+    rule_text = '\n\n'.join(rules)
+    text = MSG['rules'].format(URLS['rules'], rule_text)
+    update.message.reply_text(text, parse_mode='HTML')
+show_rules.text = 'Zeigt Regeln als Uebersicht oder im Volltext an'
+show_rules.aliases = ['regeln', 'rules', 'regel', 'rule']
+show_rules.args = True
+commands.append(show_rules)
