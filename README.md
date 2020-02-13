@@ -32,3 +32,10 @@ Die readnames funktion liest eine csv datei mit namen aus, ueberprueft ob diese 
 python manage.py cleanchars
 ```
 Loescht alle Charaktere die nicht fertiggestellt wurden
+
+### botfathercommands
+```bash
+python manage.py botfathercommands
+```
+Gibt alle Befehle mit Hilfetext aus, sodass sie fuer den botfather copy pasted
+werden koennen
