@@ -22,7 +22,13 @@ Es gibt ausserdem zu jedem Addon [vorgefertigte Abenteuer](https://telebotter.sa
 Django bietet die Moeglichkeit der `management.py` eigene Befehle hinzuzufuegen. Erstellt werden koennen im Prinzip wiederverwendbare Scripte/Funktionen, in denen direkt alle Konfigurationen und Models der App (also projekt47) zur Verfuegung stehen. So muss man sich nicht um DB verbindungen logging oder aehnliches kuemmern. [Mehr zu djangos management commands..](https://docs.djangoproject.com/en/3.0/howto/custom-management-commands/)
 
 ### readnames
-Die readnames funktion liest eine csv datei mit namen aus, ueberprueft ob diese fuers jeweilige addon schon in der DB stehen und ergaenzt sie falls nicht. Pfade und Addon namen sind hardgecoded, ist eher eine einmalige sache gewesen, aber ist denke ich auch ein gutes Beispiel um drauf aufzubauen.
+```bash
+python manage.py readnames
+```
+Die readnames funktion liest eine csv datei mit namen aus, ueberprueft ob diese fuers jeweilige addon schon in der DB stehen und ergaenzt sie falls nicht. Addonnamen sind hardgecoded, ist eher eine einmalige sache gewesen, aber ist denke ich auch ein gutes Beispiel um drauf aufzubauen.
 
-### cleancharacters
-Sucht Chraktere in der Datenbank, die nie fertig gestellt wurden und aelter als 2 Tage sind um sie zu loeschen. #20
+### cleanchars
+```bash
+python manage.py cleanchars
+```
+Loescht alle Charaktere die nicht fertiggestellt wurden
