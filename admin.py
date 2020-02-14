@@ -38,7 +38,10 @@ class MetaCardInline(admin.TabularInline):
     model = MetaCard
     extra = 1
 
+class ResInline(admin.TabularInline):
+    model = Ressource
+    extra = 1
 
 @admin.register(Addon)
 class AddonAdmin(admin.ModelAdmin):
-    inlines = [StatInline, ActionInline, MetaCardInline]
+    inlines = [StatInline, ResInline, ActionInline, MetaCardInline]

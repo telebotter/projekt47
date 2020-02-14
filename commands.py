@@ -112,3 +112,55 @@ show_rules.text = 'Zeigt Regeln als Uebersicht oder im Volltext an'
 show_rules.aliases = ['regeln', 'rules', 'regel', 'rule']
 show_rules.args = True
 commands.append(show_rules)
+
+
+def ressource(bot, update, args):
+    """ shows current ressources of own char. if args add arg1 points to arg0.
+    Example: `/res lp -5`
+    """
+    # tg_user = ut.get_user_or_quoted(update)
+    tg_user = update.message.from_user
+    player = ut.get_p_user(tg_user)
+    char = player.active_char
+    # no args just overview
+    if len(args)<2:
+        res_text = ''  # lines with chars ressources
+        for cres in char.charres_set.all():
+            res_text += f'<b>{cres.res.abbr}</b> {cres.res.name}: {cres.current}/{cres.max}\n'
+        msg_text = MSG['ress'].format(char.name, res_text)
+        update.message.reply_text(msg_text, parse_mode='HTML')
+        return
+    # with at least to args:
+    # use get instead of filter and first or just filter (list). This should
+    # always return one cres if not there should be an error raised.
+    # if cres.count() < 1:
+    #     log.warning("No ressource found for {args[0]}")
+    #     update.message.reply_text(MSG['nores'].format(args[0]))
+    #     return
+    # elif cres.count() > 1:
+    #     log.error(f"To many char ress found for {args[0]}")
+    #     log.info(str(update))
+    #     update.message.reply_text(MSG['error'])
+    #     return
+    # __iexact makes comparism case insensitive
+    try:
+        cres = char.charres_set.get(res__abbr__iexact=args[0])
+    except ValueError as ve:
+        logging.error(ve)
+        update.message.reply_text('Konnte die Zahl nicht erahnen.')
+        return
+    except Exception as e:
+        logging.error(e)
+        update.message.reply_text(MSG['error'])
+        return
+    cres_old = cres.current
+    # set new value and clamp it to (0,res.max)
+    cres.current = max(min(cres.current+int(args[1]), cres.max), 0)
+    cres.save()
+    text = MSG['resschange'].format(char.name, cres.res.name, cres_old, cres.current)
+    update.message.reply_text(text)
+    logger.info(text)
+ressource.text = 'Zeigt oder aendert die aktuellen Ressourcen eines Spielers.'
+ressource.aliases = ['res', 'vorraete', 'status', 'vitalitaet', 'ressourcen']
+ressource.args = True
+commands.append(ressource)

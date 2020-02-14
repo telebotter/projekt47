@@ -130,6 +130,24 @@ class Stat(models.Model):
         return '{} [{}]'.format(self.name, self.addon.name)
 
 
+class Ressource(models.Model):
+    """ Ressource is a stat that is has a fixed maximum and minimum and can be
+    modified during the game. Like mana and health.
+    """
+    class Meta:
+        verbose_name = 'Ressource'
+        verbose_name_plural = 'Ressourcen'
+    abbr = models.CharField(max_length=4)
+    name = models.CharField(max_length=200)
+    text = models.TextField(null=True, blank=True)
+    addon = models.ForeignKey(Addon, related_name='ressources', blank=True, null=True, on_delete=models.SET_NULL)
+    scale = models.IntegerField(default=10, verbose_name='Skillfaktor')
+    emoji = models.CharField(max_length=8, null=True, blank=True)
+
+    def __str__(self):
+        return '{} [{}]'.format(self.name, self.addon.name)
+
+
 class Action(models.Model):
     """ Any kind of action. To start the action probes vs all stats are rolled.
     if success the formula  is evaluated and the result is used to format the
@@ -165,6 +183,7 @@ class Character(models.Model):
     addon = models.ForeignKey(Addon, related_name='characters',
                                 on_delete=models.CASCADE, null=True)
     stats = models.ManyToManyField(Stat, through="CharStat", limit_choices_to={'addon': addon})
+    ress = models.ManyToManyField(Ressource, through="CharRes", limit_choices_to={'addon': addon})
     actions = models.ManyToManyField(Action, related_name='characters', related_query_name='characters', blank=True)  # only special actions
     skill_points = models.IntegerField(default=0)
     finished = models.BooleanField(default=False)
@@ -172,6 +191,7 @@ class Character(models.Model):
 
     def __str__(self):
         return str(self.name)
+
 
     def info_text(self, html=True, name=True):
         """ returns a string with optional name/addon as header. It contains the
@@ -283,6 +303,22 @@ class CharStat(models.Model):
 
     def __str__(self):
         return '{}: {} {:+d}'.format(self.char.name, self.stat.name, self.value)
+
+
+class CharRes(models.Model):
+    class Meta:
+        verbose_name = 'Charakterressource'
+        verbose_name_plural = 'Charakterressourcen'
+        constraints = [
+            models.UniqueConstraint(fields=['char', 'res'], name='uni_charres'),
+        ]
+    char = models.ForeignKey(Character, on_delete=models.CASCADE)
+    res = models.ForeignKey(Ressource, on_delete=models.CASCADE)
+    max = models.IntegerField(default=100)
+    current = models.IntegerField(default=100)
+
+    def __str__(self):
+        return '{}: {} {:+d}'.format(self.char.name, self.res.name, self.max)
 
 
 # class CharAction(models.Model):

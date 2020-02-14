@@ -111,6 +111,8 @@ def cm_name(bot, update):
     char.skill_points = addon.skill_points
     for stat in addon.stats.all():
         char.stats.add(stat, through_defaults={'value': 4})
+    for res in addon.ressources.all():
+        char.ress.add(res, through_defaults={'current': 100})
     char.save()
 
     # next message
