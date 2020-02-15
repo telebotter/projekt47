@@ -65,15 +65,18 @@ def roll(n=1):
 
 def probe(char, action, malus=0):
     """ returns sum(dice) - sum(char.stat+malus)
+    returns probendifferenz, diceresults, cstats_sum, number of dices
     """
     act_stats = action.stats.all()
     cstats = char.charstat_set.filter(stat__in=act_stats)
     logger.warn(f'Character stats: {cstats}')
     cstats_sum = sum([s.value+malus for s in cstats])  # TODO: as query?
     logger.warn(f'csum {cstats_sum}')
-    res = roll(cstats.count()) - cstats_sum
-    logger.warn(f'result: {res}')
-    return res
+    num_dice = cstats.count()
+    res = roll(num_dice)
+    probe_diff = res - cstats_sum
+    logger.warn(f'result: {probe_diff}')
+    return probe_diff , res , cstats_sum , num_dice
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
