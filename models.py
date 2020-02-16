@@ -205,9 +205,9 @@ class Character(models.Model):
     text = models.TextField(null=True, blank=True)
     meta_card = models.ForeignKey('MetaCard',
             null=True, blank=True,
-            verbose_name='chars',
-            on_delete=models.SET_NULL,
-            limit_choices_to={'addon': addon})
+            verbose_name='Meta Karte',
+            related_name='chars',
+            on_delete=models.SET_NULL)
 
     def __str__(self):
         return str(self.name)
