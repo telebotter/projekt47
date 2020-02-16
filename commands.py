@@ -22,7 +22,8 @@ def add_sp(bot, update, args):
     #     logger.info(f'parsed: {parsed_entity}')
     #     if entity['user']:
     #         logger.info(f'found user: {entity["user"]}')
-    player = ut.get_p_user(update.message.from_user)
+    tg_user = ut.get_third_user(update)
+    player = ut.get_p_user(tg_user)
     char = player.active_char
     if not char:
         update.message.reply_text(MSG['nochar'])
@@ -49,7 +50,8 @@ def info_text(bot, update, args):
     TODO: ut.get_third_user() check message for mention entities or quoted
     message authors, to get those users activated char info instead.
     """
-    player = ut.get_p_user(update.message.from_user)
+    tg_user = ut.get_third_user(update)
+    player = ut.get_p_user(tg_user)
     char = player.active_char
     update.message.reply_text(char.info_text(), parse_mode='HTML')
 info_text.text = 'Infotext zu deinem Char oder dem eines Freundes (@/quote)'
@@ -63,7 +65,8 @@ def info_stats(bot, update, args):
     TODO: ut.get_third_user() check message for mention entities or quoted
     message authors, to get those users activated char info instead.
     """
-    player = ut.get_p_user(update.message.from_user)
+    tg_user = ut.get_third_user(update)
+    player = ut.get_p_user(tg_user)
     char = player.active_char
     update.message.reply_text(char.info_stats(), parse_mode='HTML')
 info_stats.text = 'Statistik zu deinem Char oder dem eines Freundes (@/quote)'
@@ -119,7 +122,7 @@ def ressource(bot, update, args):
     Example: `/res lp -5`
     """
     # tg_user = ut.get_user_or_quoted(update)
-    tg_user = update.message.from_user
+    tg_user = ut.get_third_user(update)
     player = ut.get_p_user(tg_user)
     char = player.active_char
     # no args just overview

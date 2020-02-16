@@ -77,8 +77,20 @@ def probe(char, action, malus=0):
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#   messages and strings
+#   telegram stuff
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+def get_third_user(update):
+    """ checks an update for quote and returns the quoted author. If not return
+    author of message.
+    # TODO: also check for entities and parse them (@mentions)?
+    """
+    if update.message.reply_to_message:
+        return update.message.reply_to_message.from_user
+    return update.message.from_user
+
+
 def add_footer(keyboard, back, finish, cb='cm'):
     """ return list of button(s) or None, pass cb to use other callback prefix.
     """
