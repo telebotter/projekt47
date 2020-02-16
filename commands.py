@@ -2,6 +2,10 @@ import logging
 import datetime as dt
 from projekt47 import utils as ut
 from projekt47.constants import *
+from projekt47.models import *
+from projekt47.models import Projekt47User
+import operator
+
 logger = logging.getLogger(__name__)
 
 
@@ -116,6 +120,22 @@ show_rules.aliases = ['regeln', 'rules', 'regel', 'rule']
 show_rules.args = True
 commands.append(show_rules)
 
+def draw_metacard(bot, update):
+    """ Zieht eine zufällige Metakarte
+    """
+    char = ut.get_p_user(update.message.from_user)
+    # # TODO:
+    # addon = char.addon #funzt nicht weil weiß ich nicht -.- entsprechend auch nicht der
+    # .filter(addon=addon) befehl
+    card = MetaCard.objects.order_by('?').first()
+    text = card.text
+    name = card.name
+    # short = card.short
+    update.message.reply_text('***'+name+'***: \n' + text, parse_mode='Markdown')
+draw_metacard.text = 'Ziehe eine Metakarte.'
+draw_metacard.aliases = ['dc', 'draw', 'drawcard', 'meta' , 'matakarte' , 'karte']
+draw_metacard.args = False
+commands.append(draw_metacard)
 
 def ressource(bot, update, args):
     """ shows current ressources of own char. if args add arg1 points to arg0.

@@ -382,11 +382,11 @@ def callback(bot, update):
             return
         action = Action.objects.get(pk=data[2])
         malus = int(data[3])
-        result = ut.probe(char, action, malus)
-        em = '❌' if result < 0 else '✅'
-        text = f'{em} {char.name} {action.name}: {result}'
+        probe_diff , res , cstats_sum , num_dice = ut.probe(char, action, malus)
+        em = '❌' if probe_diff <= 0 else '✅'
+        text = f'{em} _{char.name} muss mit {num_dice} Würfel über {cstats_sum} würfeln um {action.name} zu schaffen._ ***Ergebniss: {res}. Probendifferenz : {probe_diff}***'
         bot.edit_message_text(text=text, inline_message_id=imsg_id,
-                            reply_markup=None)
+                            reply_markup=None, parse_mode='Markdown')
         return
 
     # probe keyboard
@@ -469,7 +469,7 @@ def inlinequery(bot, update):
     for act in actions:
         btns = [[InlineKeyboardButton('🎲',
                     callback_data=f'probe,{char_id},{act.id},0'),
-                InlineKeyboardButton('🎚',
+                InlineKeyboardButton('📶',
                     callback_data='extendprobekbd')]]
         options.append(
             InlineQueryResultArticle(
