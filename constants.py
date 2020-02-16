@@ -24,7 +24,13 @@ MSG = {
 'rules': 'Dies sind die allgemeinen Regeln. Für details lies auf der <a href="{}">Website</a> nach oder schreibe zum Beispiel <code>/regeln 1</code>\n\n{}',
 'ress': '{} verfügt ueber folgende Ressourcen:\n{}\nBsp: <code>/res MP -4</code> verringert die Manapunkte um 4.',
 'resschange': '{}s {} geändert:\n{} -> {}',
-'hasmetacard': 'Schreibe <code>/metakarte neu</code> um eine neue Karte zu ziehen.'
+'skill': 'Skille deinen Character. Verbleibende Punkte: {}',
+'skillgrade': 'Skille deinen Character nach Schulnotensystem (1: Sehr gut bis 6: Ungenügend). Verbleibende Skillpunkte: {}',
+'nospleft': 'Keine Punkte mehr verfuegbar!',
+'statsagain': 'Nochmal Werte Skillen. Verbleibnde Skillpunkte: {}',
+'hasmetacard': 'Schreibe <code>/metakarte neu</code> um eine neue Karte zu ziehen.',
+'probe': '{} <i>{} muss mit {} Würfeln über {} würfeln um zu {}</i>\n<b>Ergebniss: {}\nProbendifferenz : {}</b>',
+'askname': 'Wie soll der Charakter heissen? Waehle einen Namen aus den Vorschlaegen, oder sende mir einen eigenen.',
 }
 
 RULES = [

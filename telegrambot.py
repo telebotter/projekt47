@@ -116,10 +116,10 @@ def cm_name(bot, update):
     char.save()
 
     # next message
-    text = 'Wie soll der Charakter heissen? Waehle einen Namen aus den \
-Vorschlaegen, oder sende mir einen eigenen.'
+    text = MSG['askname']
     default_names = DefaultName.objects.filter(addon=addon).order_by('?')[:4]
-    keyboard = [[InlineKeyboardButton(n.name, callback_data=f'cm,name,{n.name}')]
+    keyboard = [[InlineKeyboardButton(n.name,
+            callback_data=f'cm,name,{n.name}')]
                 for n in default_names]
     reply_markup = InlineKeyboardMarkup(keyboard)
     bot.edit_message_text(
@@ -159,8 +159,7 @@ def cm_stats(bot, update):
         player.active_char.name = name
         player.active_char.save()
     # next message
-    text = f"Skille deinen Character nach Schulnotensystem (1: Sehr gut bis 6: \
-Ungenügend). Verbleibende Skillpunkte: {player.active_char.skill_points}"
+    text = MSG['skillgrade'].format(player.active_char.skill_points)
     keyboard = ut.skill_keyboard(player.active_char)
     reply_markup = InlineKeyboardMarkup(keyboard)
     bot.edit_message_text(
@@ -203,7 +202,7 @@ def cm_actions(bot, update):
         new_sp = char.skill_points + delta
         if new_sp < 0:
             # return without saving or updating anything
-            query.answer('Keine Punkte mehr verfuegbar!')
+            query.answer(MSG['nospleft'])
             return SPECIALS
         # check stat limits (>0, <6)
         cstat = CharStat.objects.get(pk=data[2])
@@ -227,8 +226,7 @@ def cm_actions(bot, update):
         try:
             bot.edit_message_text(chat_id=query.message.chat_id,
                                 message_id=query.message.message_id,
-                                text=f'Skille deinen Character. Verbleibende \
-                                        Punkte: {char.skill_points}',
+                                text=MSG['skill'].format(char.skill_points),
                                 reply_markup=markup)
         except BadRequest as e:
             logger.debug(e)
@@ -302,8 +300,8 @@ def cm_end(bot, update):
         )
         return ConversationHandler.END
     elif data[1] == 'back':
-        text = f'Nochaml Werte Skillen. Verbleibnde Skillpunkte {char.skill_points}'
-        reply_markup = InlineKeyboardMarkup(ut.skill_keyboard(player.active_char))
+        text = MSG['statsagain'].format(char.skill_points)
+        reply_markup = InlineKeyboardMarkup(ut.skill_keyboard(char))
         bot.edit_message_text(
             chat_id=query.message.chat_id,
             message_id=query.message.message_id,
@@ -384,9 +382,10 @@ def callback(bot, update):
         malus = int(data[3])
         probe_diff , res , cstats_sum , num_dice = ut.probe(char, action, malus)
         em = '❌' if probe_diff <= 0 else '✅'
-        text = f'{em} _{char.name} muss mit {num_dice} Würfel über {cstats_sum} würfeln um {action.name} zu schaffen._ ***Ergebniss: {res}. Probendifferenz : {probe_diff}***'
+        text = MSG['probe'].format(em, char.name, num_dice, cstats_sum,
+                action.name, res, probe_diff)
         bot.edit_message_text(text=text, inline_message_id=imsg_id,
-                            reply_markup=None, parse_mode='Markdown')
+                reply_markup=None, parse_mode='HTML')
         return
 
     # probe keyboard
@@ -489,16 +488,21 @@ def inlinequery(bot, update):
                 title='Spieler XP',
                 description=f'{xp} Skillpunkte vergeben',
                 id=uuid4(),
-                input_message_content = InputTextMessageContent('Erfahrungspunkte fuer einen Spieler.'),
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('nehmen', callback_data=f'xpbox,single,{xp}')]])
+                input_message_content = InputTextMessageContent(
+                        'Erfahrungspunkte fuer einen Spieler.'),
+                reply_markup=InlineKeyboardMarkup([
+                                [InlineKeyboardButton('nehmen',
+                                    callback_data=f'xpbox,single,{xp}')]])
             ))
         options.append(
             InlineQueryResultArticle(
                 title='Gruppen XP',
                 description=f'{xp} Skillpunkte an alle vergeben',
                 id=uuid4(),
-                input_message_content = InputTextMessageContent('Erfahrungspunkte fuer alle Spieler.'),
-                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('nehmen', callback_data=f'xpbox,group,{xp}')]])
+                input_message_content = InputTextMessageContent(
+                        'Erfahrungspunkte fuer alle Spieler.'),
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(
+                        'nehmen', callback_data=f'xpbox,group,{xp}')]])
             ))
     update.inline_query.answer(options, cache_time=0)
 

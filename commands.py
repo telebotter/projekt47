@@ -7,8 +7,6 @@ from projekt47.models import Projekt47User
 import operator
 
 logger = logging.getLogger(__name__)
-
-
 commands = []
 
 
@@ -153,7 +151,8 @@ def ressource(bot, update, args):
     if len(args)<2:
         res_text = ''  # lines with chars ressources
         for cres in char.charres_set.all():
-            res_text += f'<b>{cres.res.abbr}</b> {cres.res.name}: {cres.current}/{cres.max}\n'
+            res_text += f'<b>{cres.res.abbr}</b> {cres.res.name}: '
+            res_text += f'{cres.current}/{cres.max}\n'
         msg_text = MSG['ress'].format(char.name, res_text)
         update.message.reply_text(msg_text, parse_mode='HTML')
         return
@@ -184,7 +183,8 @@ def ressource(bot, update, args):
     # set new value and clamp it to (0,res.max)
     cres.current = max(min(cres.current+int(args[1]), cres.max), 0)
     cres.save()
-    text = MSG['resschange'].format(char.name, cres.res.name, cres_old, cres.current)
+    text = MSG['resschange'].format(
+            char.name, cres.res.name, cres_old, cres.current)
     update.message.reply_text(text)
     logger.info(text)
 ressource.text = 'Zeigt oder aendert die aktuellen Ressourcen eines Spielers.'
