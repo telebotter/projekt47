@@ -24,6 +24,7 @@ MSG = {
 'rules': 'Dies sind die allgemeinen Regeln. Für details lies auf der <a href="{}">Website</a> nach oder schreibe zum Beispiel <code>/regeln 1</code>\n\n{}',
 'ress': '{} verfügt ueber folgende Ressourcen:\n{}\nBsp: <code>/res MP -4</code> verringert die Manapunkte um 4.',
 'resschange': '{}s {} geändert:\n{} -> {}',
+'hasmetacard': 'Schreibe <code>/metakarte neu</code> um eine neue Karte zu ziehen.'
 }
 
 RULES = [

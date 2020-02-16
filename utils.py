@@ -1,6 +1,7 @@
 from core.models import TelebotUser
 from projekt47.models import Projekt47User
 from projekt47.models import Action
+from projekt47.models import Stat
 from projekt47.constants import *
 import random as rd
 import logging
@@ -21,9 +22,15 @@ def log(msg):
 
 
 def get_p_user(tg_user, update=False):
+    logger.warning('get_p_user() deprecated: renamed to get_player()')
+    return get_player(tg_user, update=update)
+
+
+def get_player(tg_user, update=False):
     """ check for existing telebot_user, get or create the respective
     projekt47 user (opt. update userdata i.e. names/language).
     """
+
     telebot_user, new = TelebotUser.objects.get_or_create(pk=tg_user.id)
     if new or update:
         telebot_user.first_name = tg_user.first_name
@@ -59,24 +66,28 @@ def roll(n=1):
     """ roll n dices and return their sum
     """
     rolls = [rd.randint(1,6) for _ in range(n)]
-    logger.warn(f'rolled: {rolls}')
+    logger.info(f'rolled: {rolls}')
     return sum(rolls)
 
 
 def probe(char, action, malus=0):
-    """ returns sum(dice) - sum(char.stat+malus)
-    returns probendifferenz, diceresults, cstats_sum, number of dices
+    """ can also take a stat instead of an action
+    returns probe_diff, diceresults, cstats_sum, number of dices
     """
-    act_stats = action.stats.all()
+    if isinstance(action, Stat):
+        act_stats = [action]
+    else:
+        act_stats = action.stats.all()
     cstats = char.charstat_set.filter(stat__in=act_stats)
-    logger.warn(f'Character stats: {cstats}')
-    cstats_sum = sum([s.value+malus for s in cstats])  # TODO: as query?
-    logger.warn(f'csum {cstats_sum}')
+    logger.info(f'Character stats: {cstats}')
+    cstats_sum = sum([s.value+malus for s in cstats])
+    logger.info(f'csum {cstats_sum}')
     num_dice = cstats.count()
     res = roll(num_dice)
     probe_diff = res - cstats_sum
-    logger.warn(f'result: {probe_diff}')
+    logger.info(f'result: {probe_diff}')
     return probe_diff , res , cstats_sum , num_dice
+
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

@@ -1,10 +1,11 @@
 from django.db import models
 from core.models import TelebotUser
+from projekt47.constants import *
 import json
 from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
 
-EMO_NUM = ['0️⃣', '1️⃣', '2️⃣','3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   telegram related models
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -78,7 +79,8 @@ class Addon(models.Model):
     name = models.CharField(max_length=200)
     text = models.TextField(null=True, blank=True)
     skill_points = models.IntegerField(default=3)
-    owner = models.ForeignKey(Projekt47User, blank=True, null=True, on_delete=models.SET_NULL)
+    owner = models.ForeignKey(Projekt47User,
+            blank=True, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return str(self.name)
@@ -123,7 +125,8 @@ class Stat(models.Model):
     text = models.TextField(null=True, blank=True)
     ressource = models.BooleanField(default=False)
     #addons = models.ManyToManyField(Addon, related_name='stats', blank=True)
-    addon = models.ForeignKey(Addon, related_name='stats', blank=True, null=True, on_delete=models.SET_NULL)
+    addon = models.ForeignKey(Addon, related_name='stats',
+            blank=True, null=True, on_delete=models.SET_NULL)
     emoji = models.CharField(max_length=8, null=True, blank=True)
 
     def __str__(self):
@@ -140,7 +143,8 @@ class Ressource(models.Model):
     abbr = models.CharField(max_length=4)
     name = models.CharField(max_length=200)
     text = models.TextField(null=True, blank=True)
-    addon = models.ForeignKey(Addon, related_name='ressources', blank=True, null=True, on_delete=models.SET_NULL)
+    addon = models.ForeignKey(Addon, related_name='ressources',
+            blank=True, null=True, on_delete=models.SET_NULL)
     scale = models.IntegerField(default=10, verbose_name='Skillfaktor')
     emoji = models.CharField(max_length=8, null=True, blank=True)
 
@@ -158,7 +162,8 @@ class Action(models.Model):
         verbose_name = 'Aktion'
         verbose_name_plural = 'Aktionen'
     name = models.CharField(max_length=200)
-    addon = models.ForeignKey(Addon, related_name='action', blank=True, null=True, on_delete=models.SET_NULL)
+    addon = models.ForeignKey(Addon, related_name='action',
+            blank=True, null=True, on_delete=models.SET_NULL)
     stats = models.ManyToManyField(Stat, related_name='actions',
                                 null=True, blank=True)
     formula = models.CharField(max_length=200, null=True, blank=True) # '1*W+4'
@@ -177,21 +182,35 @@ class Character(models.Model):
     class Meta:
         verbose_name = 'Charakter'
         verbose_name_plural = 'Charaktere'
-    owner = models.ForeignKey(Projekt47User, on_delete=models.SET_NULL,
-                                null=True, blank=True)
+    owner = models.ForeignKey(Projekt47User,
+            on_delete=models.SET_NULL,
+            null=True, blank=True)
     name = models.CharField(max_length=200)
-    addon = models.ForeignKey(Addon, related_name='characters',
-                                on_delete=models.CASCADE, null=True)
-    stats = models.ManyToManyField(Stat, through="CharStat", limit_choices_to={'addon': addon})
-    ress = models.ManyToManyField(Ressource, through="CharRes", limit_choices_to={'addon': addon})
-    actions = models.ManyToManyField(Action, related_name='characters', related_query_name='characters', blank=True)  # only special actions
+    addon = models.ForeignKey(Addon,
+            related_name='characters',
+            on_delete=models.CASCADE,
+            null=True, blank=True)
+    stats = models.ManyToManyField(Stat,
+            through="CharStat",
+            limit_choices_to={'addon': addon})
+    ress = models.ManyToManyField(Ressource,
+            through="CharRes",
+            limit_choices_to={'addon': addon})
+    actions = models.ManyToManyField(Action,
+            related_name='characters',
+            related_query_name='characters',
+            null=True, blank=True)  # only special actions
     skill_points = models.IntegerField(default=0)
     finished = models.BooleanField(default=False)
     text = models.TextField(null=True, blank=True)
+    meta_card = models.ForeignKey('MetaCard',
+            null=True, blank=True,
+            verbose_name='chars',
+            on_delete=models.SET_NULL,
+            limit_choices_to={'addon': addon})
 
     def __str__(self):
         return str(self.name)
-
 
     def info_text(self, html=True, name=True):
         """ returns a string with optional name/addon as header. It contains the
@@ -203,6 +222,8 @@ class Character(models.Model):
         header += i.format(str(self.addon)) + '\n\n'
         text = header if name else ''
         text += str(self.text)
+        if self.meta_card:
+            text += '\n\n' + self.meta_card.msg(html=html)
         return text
 
     def info_stats(self, html=True, name=True):
@@ -214,7 +235,7 @@ class Character(models.Model):
         text = n+'\n\n' if name else ''
         text += 'Eigenschaften:\n'
         for s in self.charstat_set.all():
-            text += ' ' + EMO_NUM[s.value] + ' ' + s.stat.name + '\n'
+            text += ' ' + EMOJ_NUM[s.value] + ' ' + s.stat.name + '\n'
         text += '\nSpezialaktionen:'
         for a in self.actions.all():
             text += f"\n *️⃣ {a.name}"
@@ -246,13 +267,24 @@ class MetaCard(models.Model):
     class Meta:
         verbose_name = 'Metakarte'
         verbose_name_plural = 'Metakarten'
-    addon = models.ForeignKey(Addon, related_name='meta_cards', on_delete=models.CASCADE)
-    name = models.CharField(max_length=200, default='Meta Karte')
-    short = models.CharField(max_length=400, default='Kurzbeschreibung der Metakarte (log, tooltip)') # log text and shord des
-    text = models.CharField(max_length=500, default="Vollständige Erklärung der Metakarte")
+    addon = models.ForeignKey(Addon,
+            related_name='meta_cards',
+            on_delete=models.CASCADE)
+    name = models.CharField(max_length=200,
+            default='Meta Karte')
+    short = models.CharField(max_length=400,
+            default='Kurzbeschreibung der Metakarte (log, tooltip)')
+    text = models.CharField(max_length=500,
+            default="Vollständige Erklärung der Metakarte")
+    impact = models.IntegerField(default=0, verbose_name='Spieleinfluss')
+    face_down = models.BooleanField(default=False, verbose_name='verdeckt')
 
     def __str__(self):
         return str(self.addon.name + ': ' + self.name)
+
+    def msg(self, html=True):
+        b = '<b>{}</b>' if html else '{}'
+        return b.format(self.name) + '\n' + self.text
 
 
 class DefaultName(models.Model):

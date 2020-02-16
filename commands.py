@@ -27,7 +27,7 @@ def add_sp(bot, update, args):
     #     if entity['user']:
     #         logger.info(f'found user: {entity["user"]}')
     tg_user = ut.get_third_user(update)
-    player = ut.get_p_user(tg_user)
+    player = ut.get_player(tg_user)
     char = player.active_char
     if not char:
         update.message.reply_text(MSG['nochar'])
@@ -55,7 +55,7 @@ def info_text(bot, update, args):
     message authors, to get those users activated char info instead.
     """
     tg_user = ut.get_third_user(update)
-    player = ut.get_p_user(tg_user)
+    player = ut.get_player(tg_user)
     char = player.active_char
     update.message.reply_text(char.info_text(), parse_mode='HTML')
 info_text.text = 'Infotext zu deinem Char oder dem eines Freundes (@/quote)'
@@ -70,7 +70,7 @@ def info_stats(bot, update, args):
     message authors, to get those users activated char info instead.
     """
     tg_user = ut.get_third_user(update)
-    player = ut.get_p_user(tg_user)
+    player = ut.get_player(tg_user)
     char = player.active_char
     update.message.reply_text(char.info_stats(), parse_mode='HTML')
 info_stats.text = 'Statistik zu deinem Char oder dem eines Freundes (@/quote)'
@@ -83,7 +83,7 @@ def set_story(bot, update, args):
     """ posted story vom aktuellen char wenn kein argument, ansonsten wird sie
     neu geschrieben.
     """
-    player = ut.get_p_user(update.message.from_user)
+    player = ut.get_player(update.message.from_user)
     char = player.active_char
     if not len(args)>0:
         update.message.reply_text(f'Beschreibung: {char.text}')
@@ -120,22 +120,26 @@ show_rules.aliases = ['regeln', 'rules', 'regel', 'rule']
 show_rules.args = True
 commands.append(show_rules)
 
-def draw_metacard(bot, update):
-    """ Zieht eine zufällige Metakarte
+
+def draw_metacard(bot, update, args):
+    """ draw a first meta card, or a new one with arg=neu
     """
-    char = ut.get_p_user(update.message.from_user)
-    # # TODO:
-    # addon = char.addon #funzt nicht weil weiß ich nicht -.- entsprechend auch nicht der
-    # .filter(addon=addon) befehl
-    card = MetaCard.objects.order_by('?').first()
-    text = card.text
-    name = card.name
-    # short = card.short
-    update.message.reply_text('***'+name+'***: \n' + text, parse_mode='Markdown')
+    player = ut.get_player(update.message.from_user)
+    char = player.active_char
+    if not char.meta_card or 'neu' in args:
+        card = MetaCard.objects.filter(addon=char.addon).order_by('?').first()
+        char.meta_card = card
+        char.save()
+        logger.info(f'{char} zieht Metakarte: {card.name}')
+        update.message.reply_text(card.msg(), parse_mode='HTML')
+        return
+    text = char.meta_card.msg() + '\n\n' + MSG['hasmetacard']
+    update.message.reply_text(text, parse_mode='HTML')
 draw_metacard.text = 'Ziehe eine Metakarte.'
-draw_metacard.aliases = ['dc', 'draw', 'drawcard', 'meta' , 'matakarte' , 'karte']
-draw_metacard.args = False
+draw_metacard.aliases = ['metakarte', 'dc', 'draw', 'drawcard', 'meta', 'karte']
+draw_metacard.args = True
 commands.append(draw_metacard)
+
 
 def ressource(bot, update, args):
     """ shows current ressources of own char. if args add arg1 points to arg0.
