@@ -460,10 +460,11 @@ def inlinequery(bot, update):
     """
     query = update.inline_query.query
     logger.debug('query update')
-    p_user = ut.get_p_user(update.inline_query.from_user)
-    char_id = ut.get_users_active_char_id(p_user)
+    player = ut.get_player(update.inline_query.from_user)
+    char = player.active_char
+    char_id = ut.get_users_active_char_id(player)
     options = []  # collection of buttons with predefined answers
-    actions = Action.objects.filter(name__startswith=query)
+    actions = Action.objects.filter(name__istartswith=query)
     # TODO: use chars actions instead of all
     for act in actions:
         btns = [[InlineKeyboardButton('🎲',
