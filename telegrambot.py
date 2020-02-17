@@ -342,16 +342,6 @@ def sharetest(bot, update):
     update.message.reply_text('Ich bin eine normale antwort')
 
 
-def activate_char(bot, update, args):
-    """ debug command, to manually select a character by id.
-    """
-    char = Character.objects.get(pk=args[0])
-    player = ut.get_p_user(update.message.from_user)
-    player.active_char = char
-    player.save()
-    update.message.reply_text(f'Charakter {char.name} aktiviert')
-
-
 def callback(bot, update):
     """ this function is called when a button is pressed.
     The button data is a csv string, that is split and evaluated from left to
@@ -375,7 +365,7 @@ def callback(bot, update):
     if data[0].endswith('probe'):
         if char is None:
             update.callback_query.answer(
-                    text='Kein aktiver Charakter! Schreib mir privat.',
+                    text=MSG['nochar'],
                     show_alert=True)
             return
         if data[0] == 'probe':
@@ -527,7 +517,6 @@ def add_shared_handlers(dp):
     # handlers for both methods
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('normaltest', sharetest))
-    dp.add_handler(CommandHandler('activate', activate_char, pass_args=True))
 
     # add handlers for commands.py
     for cmd in commands:

@@ -47,6 +47,20 @@ add_sp.args = True  # TODO: this should be obsolet when context is used.
 commands.append(add_sp)
 
 
+def activate_char(bot, update, args):
+    """ debug command, to manually select a character by id.
+    """
+    char = Character.objects.get(pk=args[0])
+    player = ut.get_p_user(update.message.from_user)
+    player.active_char = char
+    player.save()
+    update.message.reply_text(f'Charakter {char.name} aktiviert')
+activate_char.text = 'Aktiviert einen Charakter ueber seine ID'
+activate_char.aliases = ['aktiviere', 'aktivieren', 'activate', 'enable']
+activate_char.args = True
+commands.append(activate_char)
+
+
 def info_text(bot, update, args):
     """ posts info text (story/description) of this users active char.
     TODO: ut.get_third_user() check message for mention entities or quoted
@@ -133,7 +147,7 @@ def draw_metacard(bot, update, args):
         return
     text = char.meta_card.msg() + '\n\n' + MSG['hasmetacard']
     update.message.reply_text(text, parse_mode='HTML')
-draw_metacard.text = 'Ziehe eine Metakarte.'
+draw_metacard.text = 'Ziehe eine Metakarte'
 draw_metacard.aliases = ['metakarte', 'dc', 'draw', 'drawcard', 'meta', 'karte']
 draw_metacard.args = True
 commands.append(draw_metacard)

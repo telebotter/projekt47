@@ -166,17 +166,26 @@ def probe_query_result(char, act):
     a specific action of a character. Works also for stats instead of actions.
     """
     if isinstance(act, Stat):
-        cbd = f'statprobe,{char.id},{act.id},0'
+        cbd = f'statprobe,{char.id},{act.id},'
+        stats = [act]
+        desc = act.abbr
     else:
-        cbd = f'probe,{char.id},{act.id},0'
+        cbd = f'probe,{char.id},{act.id},'
+        stats = act.stats.all()
+    cstats = char.charstat_set.filter(stat__in=stats)
+    n = len(stats)
+    p = sum([c.value for c in cstats])
+    desc = ', '.join([s.abbr for s in stats])
+    msg_text = MSG['probe'].format('🎲', char.name,
+            str(n), str(p), act.name, '', '')
     btns = [[InlineKeyboardButton('🎲',
-                callback_data=cbd),
+                callback_data=cbd+'0'),
             InlineKeyboardButton('📶',
-                callback_data='extendprobekbd')]]
+                callback_data=cbd+'ext')]]
     res = InlineQueryResultArticle(
             title=act.name,
-            description=f'{act.name} Probe',
+            description=desc,
             id=uuid4(),
-            input_message_content = InputTextMessageContent(f'{act.name}:'),
+            input_message_content = InputTextMessageContent(msg_text, parse_mode='HTML'),
             reply_markup=InlineKeyboardMarkup(btns))
     return res

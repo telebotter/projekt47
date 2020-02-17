@@ -18,7 +18,7 @@ BTN = {
 
 MSG = {
 'error': 'Ups, da ist was schief gegangen. Tritt der Fehler erneut auf, gib einem Admin bescheid.',
-'nochar': 'Du hast keinen Charakter aktiviert.',
+'nochar': 'Du hast keinen Charakter aktiviert. Schreib mir privat: /cm',
 'norule': 'Dazu hab ich leider keine Regel gefunden.',
 'nores': 'Tut mir Leid dieser Charakter verfügt ueber keine Ressource mit der Abkuerzung <code>{}</code>',
 'rules': 'Dies sind die allgemeinen Regeln. Für details lies auf der <a href="{}">Website</a> nach oder schreibe zum Beispiel <code>/regeln 1</code>\n\n{}',
