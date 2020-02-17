@@ -374,7 +374,23 @@ def callback(bot, update):
         elif data[0] == 'statprobe':
             action = Stat.objects.get(pk=data[2])
         else:
-            logger.error('unexpected cbd for a probe')
+            logger.error('unexpected cbd for probe')
+        if data[3] == 'ext':
+            logger.debug('probe keyboard extend')
+            # text, kbd, desc = ut.probe_message(char, action, ext=True)
+            # msg.edit_text(msg.text, reply_markup=msg_kbd)  # not woking with imsg
+            rows = [[InlineKeyboardButton('🎲', callback_data=','.join(data))]]
+            mali = [[-2, -1, +1, +2], [-4, -3, +3, +4]]
+            for r in mali:
+                row = []
+                for m in r:
+                    data[3] = str(m)
+                    cbd = ','.join(data)
+                    btn = InlineKeyboardButton(f'{m:+d}', callback_data=cbd)
+                    row.append(btn)
+                rows.append(row)
+            query.edit_message_reply_markup(InlineKeyboardMarkup(rows))
+            return
         malus = int(data[3])
         probe_diff , res , cstats_sum , num_dice = ut.probe(char, action, malus)
         em = '❌' if probe_diff <= 0 else '✅'
@@ -384,34 +400,6 @@ def callback(bot, update):
                 reply_markup=None, parse_mode='HTML')
         return
 
-    # probe keyboard
-    elif data[0] == 'extendprobekbd':
-        logger.warning('probe keyboard extend')
-        #msg_text = msg.text
-        msg_kbd = msg.reply_markup
-        btns = msg_kbd.inline_keyboard
-        if len(btns) > 1: # collapse
-            log('collapse probe keyboard')
-            msg_kbd = InlineKeyboardMarkup([btns[0]])
-        else:
-            log('expand probe keyboard')
-            roll_btn = btns[0][0]
-            # get probe details from first button
-            cb_data = roll_btn.callback_data.split(',')
-            row_plus = []
-            row_minus = []
-            for i in range(1,5):
-                cb_data[3] = str(i)
-                row_plus.append(InlineKeyboardButton(
-                        '{:+d}'.format(i), callback_data=','.join(cb_data)))
-                cb_data[3] = str(-i)
-                row_minus.append(InlineKeyboardButton(
-                        '{:+d}'.format(-i), callback_data=','.join(cb_data)))
-            btns.append(row_plus)
-            btns.append(row_minus)
-            msg_kbd(btns)
-        # msg.edit_text(msg.text, reply_markup=msg_kbd)  # not woking with imsg
-        bot.edit_message_reply_markup(msg_kbd)
 
     # xp collection
     elif data[0] == 'xpbox':

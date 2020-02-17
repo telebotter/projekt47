@@ -161,9 +161,11 @@ def action_keyboard(char, finish_btn=True, back_btn=True):
     return keyboard
 
 
-def probe_query_result(char, act):
-    """ generates the inline query result article (title, text and message) for
-    a specific action of a character. Works also for stats instead of actions.
+def probe_message(char, act):
+    """ generates the message content for a probe. Can be used to generate
+    message content for inlinequery results and regenerate the message when
+    keyboard is extended (probe mali). It also returns the description for
+    inline query results.
     """
     if isinstance(act, Stat):
         cbd = f'statprobe,{char.id},{act.id},'
@@ -177,15 +179,24 @@ def probe_query_result(char, act):
     p = sum([c.value for c in cstats])
     desc = ', '.join([s.abbr for s in stats])
     msg_text = MSG['probe'].format('🎲', char.name,
-            str(n), str(p), act.name, '', '')
+            str(n), str(p), act.name, '❔', '❔')
     btns = [[InlineKeyboardButton('🎲',
                 callback_data=cbd+'0'),
             InlineKeyboardButton('📶',
                 callback_data=cbd+'ext')]]
+    return (msg_text, btns, desc)
+
+
+def probe_query_result(char, act):
+    """ generates the inline query result article (title, text and message) for
+    a specific action of a character. Works also for stats instead of actions.
+    """
+    msg_text, btns, desc = probe_message(char, act)
+    content = InputTextMessageContent(msg_text, parse_mode='HTML')
     res = InlineQueryResultArticle(
-            title=act.name,
-            description=desc,
-            id=uuid4(),
-            input_message_content = InputTextMessageContent(msg_text, parse_mode='HTML'),
-            reply_markup=InlineKeyboardMarkup(btns))
+        title=act.name,
+        description=desc,
+        id=uuid4(),
+        input_message_content = content,
+        reply_markup=InlineKeyboardMarkup(btns))
     return res
