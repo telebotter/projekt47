@@ -519,9 +519,9 @@ def inlinequery(bot, update):
     # https://docs.djangoproject.com/en/dev/topics/db/queries/#complex-lookups-with-q-objects
     actions = Action.objects.filter(
             (Q(special=False) | Q(characters__in=[char])),
-            name__istartswith=query,
+            name__icontains=query,
             addon=char.addon)
-    stats = Stat.objects.filter(addon=char.addon)
+    stats = Stat.objects.filter(addon=char.addon, name__icontains=query)
     # options = []  # collection of buttons with predefined answers
     # for act in actions:
     #     options.append(ut.probe_query_result(char, act))
