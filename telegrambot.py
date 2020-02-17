@@ -459,7 +459,7 @@ def callback(bot, update):
         em = '❌' if probe_diff <= 0 else '✅'
         text = MSG['probe'].format(em, char.name, num_dice, cstats_sum,
                 action.name, res, probe_diff)
-        if len(data) > 3 and data[4] == 'hidden':
+        if len(data) > 4 and data[4] == 'hidden':
             logger.info('hidden probe')
             text = MSG['probehidden'].format(em, action.name, res, probe_diff)
             query.answer(text, show_alert=True)
