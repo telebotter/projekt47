@@ -16,6 +16,7 @@ from django_telegrambot.apps import DjangoTelegramBot  # for webmode
 from projekt47 import utils as ut
 from projekt47.commands import commands
 from projekt47.models import *
+from projekt47.constants import *
 from uuid import uuid4
 import random
 import logging
@@ -34,11 +35,6 @@ logger = logging.getLogger(__name__)
 #  character creation / conversation frame
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# Stages
-CHOOSE_ADDON, CREATE_CHARACTER, CHARACTER_NAME, OWN_NAME, BASICS = range(5)
-SPECIALS, END = (5, 6)
-# Callback data
-ONE, TWO, THREE, FOUR = range(4)
 
 
 def character_menu(bot, update):
@@ -51,7 +47,7 @@ def character_menu(bot, update):
     text = 'Waehle einen Helden'
     keyboard = [[InlineKeyboardButton('Neuer Charakter',
                 callback_data='cm_newchar')]]
-    player = ut.get_p_user(update.message.from_user)
+    player = ut.get_player(update.message.from_user)
     chars = Character.objects.filter(owner=player)
     for char in chars:
         btn = f'{char.name}'
@@ -59,7 +55,7 @@ def character_menu(bot, update):
             btn = f'✔️ {char.name.upper()}'
         keyboard.append([
                 InlineKeyboardButton(btn,
-                        callback_data='cm_activate,{char.id}')])
+                        callback_data=f'cm_select,{char.id}')])
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text(text, reply_markup=reply_markup)
     return CHOOSE_ADDON
@@ -72,9 +68,26 @@ def cm_choose_addon(bot, update):
     # TODO: add date_created and created to char, and use management command
     to clean up from time to time.
     """
-    logger.debug(f'choose addon')
+    logger.debug(f'select/create char')
     query = update.callback_query
-    player = ut.get_p_user(query.from_user)
+    data = query.data.split(',')
+    player = ut.get_player(query.from_user)
+
+    # select existing
+    if data[0] == 'cm_select':
+        logger.info(f'{player} is selecting a char')
+        char = Character.objects.get(pk=data[1])
+        text = MSG['charselected'].format(char.name)
+        btns = [
+            [InlineKeyboardButton('Aktivieren',
+                    callback_data=f'cm_activate,{char.id}')],
+            [InlineKeyboardButton('Bearbeiten',
+                    callback_data=f'cm_edit,{char.id}')],
+            [InlineKeyboardButton('Loeschen',
+                    callback_data=f'cm_delete,{char.id}')],
+        ]
+        query.edit_message_text(text, reply_markup=InlineKeyboardMarkup(btns))
+        return STUPIDNUMBER
 
     # init new character
     logger.info(f'{player} is creating a new char')
@@ -97,12 +110,41 @@ def cm_choose_addon(bot, update):
     return CREATE_CHARACTER
 
 
+def cm_selected(bot, update):
+    """ this is called when a player has chosen some operation on an existing
+    character.
+    """
+    query = update.callback_query
+    player = ut.get_player(query.from_user)
+    data = query.data.split(',')
+    char = Character.objects.get(pk=data[1])
+    if data[0] == 'cm_activate':
+        player.active_char = char
+        player.save()
+        query.edit_message_text(f'Dein Charakter {char.name} ist nun aktiv.',
+                reply_markup=None)
+        logger.info(f'{player} activated {char.name}')
+        return ConversationHandler.END
+    elif data[0] == 'cm_edit':
+        player.active_char = char
+        player.save()
+        # quick jump to skill bypass conversationhandler steps
+        # return SPECIALS
+        return cm_stats(bot, update)
+    elif data[0] == 'cm_delete':
+        logger.info(f'{player} delete char {char.name}')
+        char.delete()
+        query.edit_message_text(f'Dein Charakter wurde geloescht.',
+                reply_markup=None)
+        return ConversationHandler.END
+
+
 def cm_name(bot, update):
     """ Saves previous choice (addon).
     Send some suggestions for names or read from user input.
     """
     query = update.callback_query
-    player = ut.get_p_user(query.from_user)
+    player = ut.get_player(query.from_user)
     char = player.active_char
 
     # set players stats and actions and save addon choice
@@ -152,7 +194,7 @@ def cm_stats(bot, update):
     #TODO: track unset stats (freie Skillpunkte).
     """
     query = update.callback_query
-    player = ut.get_p_user(query.from_user)
+    player = ut.get_player(query.from_user)
     data = query.data.split(',')
     # save choice name
     if data[1] == 'name':
@@ -178,7 +220,7 @@ def cm_actions(bot, update):
     returning current conversation state (SPECIALS) is like doing nothing.
     """
     query = update.callback_query
-    player = ut.get_p_user(query.from_user)
+    player = ut.get_player(query.from_user)
     char = player.active_char
     data = query.data.split(',')
 
@@ -214,6 +256,20 @@ def cm_actions(bot, update):
             # return without saving or updating anything
             query.answer('Nur Werte von 1-6 erlaubt!')
             return SPECIALS
+        # remove actions that are not longer allowed
+        if new_stat > 4:
+            rem_acts = char.actions.filter(stats__in=[cstat.stat])
+            rem_count = rem_acts.count()
+            if rem_acts.count() > 0:
+                logger.error('removed actions')
+                query.answer(MSG['nostatreq'])
+                new_sp += rem_count
+                logger.error(f'sp added: {rem_acts.count()}')
+                for a in rem_acts:
+                    char.actions.remove(a)
+                    logger.info(f'removed {a}')
+
+
         # change values in db
         char.skill_points = new_sp
         char.save()
@@ -222,7 +278,7 @@ def cm_actions(bot, update):
         cstat.save()
         logger.info(f'{player} skilled ({delta}): {cstat}')
         # update message view:
-        char.refresh_from_db()  # cb stats changed
+        char.refresh_from_db()  # cb stats and actions changed
         markup = InlineKeyboardMarkup(ut.skill_keyboard(char))
         try:
             bot.edit_message_text(chat_id=query.message.chat_id,
@@ -265,7 +321,7 @@ def cm_end(bot, update):
     """
     query = update.callback_query
     data = query.data.split(',')
-    player = ut.get_p_user(query.from_user)
+    player = ut.get_player(query.from_user)
     char = player.active_char
     if data[1] == 'skillaction':
         new_action = Action.objects.get(pk=data[2])
@@ -326,7 +382,7 @@ def error(bot, update, error):
 
 def start(bot, update):
     tg_user = update.message.from_user
-    p_user = ut.get_p_user(tg_user, update=True)
+    p_user = ut.get_player(tg_user, update=True)
     update.message.reply_text(f'hallo {p_user.telebot_user.first_name}')
 
 
@@ -352,7 +408,7 @@ def callback(bot, update):
     msg = query.message  # only works for normal bot msgs
     imsg_id = query.inline_message_id # inline message ids
     logger.debug('callback update from msg %s', msg)
-    player = ut.get_p_user(update.callback_query.from_user)
+    player = ut.get_player(update.callback_query.from_user)
     char = player.active_char
 
     # cm data should not reach this handler:
@@ -363,6 +419,7 @@ def callback(bot, update):
 
     # probe buttons
     if data[0].endswith('probe'):
+        logger.info(data)
         if char is None:
             update.callback_query.answer(
                     text=MSG['nochar'],
@@ -375,11 +432,17 @@ def callback(bot, update):
             action = Stat.objects.get(pk=data[2])
         else:
             logger.error('unexpected cbd for probe')
+            return
         if data[3] == 'ext':
-            logger.debug('probe keyboard extend')
+            logger.info('probe keyboard extend')
             # text, kbd, desc = ut.probe_message(char, action, ext=True)
             # msg.edit_text(msg.text, reply_markup=msg_kbd)  # not woking with imsg
-            rows = [[InlineKeyboardButton('🎲', callback_data=','.join(data))]]
+            cbd = ','.join(data[:3])
+            logger.info(f'cbd: {cbd}')
+            rows = [[
+                InlineKeyboardButton('🎲', callback_data=cbd+',0'),
+                InlineKeyboardButton('👁‍🗨', callback_data=cbd+',0,hidden')]
+            ]
             mali = [[-2, -1, +1, +2], [-4, -3, +3, +4]]
             for r in mali:
                 row = []
@@ -396,7 +459,13 @@ def callback(bot, update):
         em = '❌' if probe_diff <= 0 else '✅'
         text = MSG['probe'].format(em, char.name, num_dice, cstats_sum,
                 action.name, res, probe_diff)
-        bot.edit_message_text(text=text, inline_message_id=imsg_id,
+        if len(data) > 3 and data[4] == 'hidden':
+            logger.info('hidden probe')
+            text = MSG['probehidden'].format(em, action.name, res, probe_diff)
+            query.answer(text, show_alert=True)
+            query.edit_message_reply_markup(None)
+            return
+        query.edit_message_text(text=text,
                 reply_markup=None, parse_mode='HTML')
         return
 
@@ -524,7 +593,8 @@ def add_shared_handlers(dp):
                         CallbackQueryHandler(cm_stats)],
             # BASICS: [CallbackQueryHandler(cm_stats)],
             SPECIALS:[CallbackQueryHandler(cm_actions)],
-            END: [CallbackQueryHandler(cm_end)]
+            END: [CallbackQueryHandler(cm_end)],
+            STUPIDNUMBER:[CallbackQueryHandler(cm_selected)],
         },
         fallbacks=[CommandHandler('cm', character_menu)]
     )

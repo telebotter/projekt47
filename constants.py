@@ -1,7 +1,11 @@
 
 # dont slice the string, an emoji can be more than one char (use lists)
 EMOJ_NUM = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣']
-
+# Stages
+CHOOSE_ADDON, CREATE_CHARACTER, CHARACTER_NAME, OWN_NAME, BASICS = range(5)
+SPECIALS, END, STUPIDNUMBER = (5, 6, 7)
+# Callback data
+ONE, TWO, THREE, FOUR = range(4)
 
 URL = 'https://telebotter.sarbot.de/projekt47/'
 URLS = {
@@ -21,6 +25,7 @@ MSG = {
 'nochar': 'Du hast keinen Charakter aktiviert. Schreib mir privat: /cm',
 'norule': 'Dazu hab ich leider keine Regel gefunden.',
 'nores': 'Tut mir Leid dieser Charakter verfügt ueber keine Ressource mit der Abkuerzung <code>{}</code>',
+'nostatreq': 'Vorraussetzungen fuer Aktion nicht erfuellt.',
 'rules': 'Dies sind die allgemeinen Regeln. Für details lies auf der <a href="{}">Website</a> nach oder schreibe zum Beispiel <code>/regeln 1</code>\n\n{}',
 'ress': '{} verfügt ueber folgende Ressourcen:\n{}\nBsp: <code>/res MP -4</code> verringert die Manapunkte um 4.',
 'resschange': '{}s {} geändert:\n{} -> {}',
@@ -30,7 +35,9 @@ MSG = {
 'statsagain': 'Nochmal Werte Skillen. Verbleibnde Skillpunkte: {}',
 'hasmetacard': 'Schreibe <code>/metakarte neu</code> um eine neue Karte zu ziehen.',
 'probe': '{} <i>{} braucht auf {} Würfeln über {} Augen um {} zu bestehen.</i>\n<b>Ergebniss: {}\nProbendifferenz : {}</b>',
+'probehidden': '{} Versteckte Probe auf {}:\nErgebniss: {}\nProbendifferenz: {}',
 'askname': 'Wie soll der Charakter heissen? Waehle einen Namen aus den Vorschlaegen, oder sende mir einen eigenen.',
+'charselected': 'Was moechtest du mit dem Charakter {} anstellen?',
 }
 
 RULES = [
