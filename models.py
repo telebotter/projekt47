@@ -122,7 +122,7 @@ class Stat(models.Model):
         verbose_name_plural = 'Werte'
     abbr = models.CharField(max_length=4)
     name = models.CharField(max_length=200)
-    text = models.TextField(null=True, blank=True)
+    text = models.CharField(max_length=180, null=True, blank=True)
     ressource = models.BooleanField(default=False)
     #addons = models.ManyToManyField(Addon, related_name='stats', blank=True)
     addon = models.ForeignKey(Addon, related_name='stats',
