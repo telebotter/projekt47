@@ -13,7 +13,7 @@ class Command(BaseCommand):
         fpath = os.path.join('projekt47', 'static', 'projekt47', 'defaultnames.csv')
         data = pd.read_csv(fpath, sep=',')
         addons = {
-            'Mittelalter': Addon.objects.get(pk=1)
+            'Mittelalter': Addon.objects.get(pk=5)
         }
         for c in data:
             addon = addons[c]
