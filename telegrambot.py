@@ -20,6 +20,7 @@ from uuid import uuid4
 import random
 import logging
 from django.conf import settings
+from django.db.models import Q
 import os
 # import pwd
 #
@@ -362,6 +363,7 @@ def callback(bot, update):
     imsg_id = query.inline_message_id # inline message ids
     logger.debug('callback update from msg %s', msg)
     player = ut.get_p_user(update.callback_query.from_user)
+    char = player.active_char
 
     # cm data should not reach this handler:
     if data[0] == 'cm':
@@ -370,15 +372,19 @@ def callback(bot, update):
         return
 
     # probe buttons
-    if data[0] == 'probe':
-        #char = Character.objects.get(pk=data[1])
-        char = player.active_char
+    if data[0].endswith('probe'):
         if char is None:
             update.callback_query.answer(
                     text='Kein aktiver Charakter! Schreib mir privat.',
                     show_alert=True)
             return
-        action = Action.objects.get(pk=data[2])
+        if data[0] == 'probe':
+            action = Action.objects.get(pk=data[2])
+        # pass a stat as fake action
+        elif data[0] == 'statprobe':
+            action = Stat.objects.get(pk=data[2])
+        else:
+            logger.error('unexpected cbd for a probe')
         malus = int(data[3])
         probe_diff , res , cstats_sum , num_dice = ut.probe(char, action, malus)
         em = '❌' if probe_diff <= 0 else '✅'
@@ -463,22 +469,21 @@ def inlinequery(bot, update):
     player = ut.get_player(update.inline_query.from_user)
     char = player.active_char
     char_id = ut.get_users_active_char_id(player)
-    options = []  # collection of buttons with predefined answers
-    actions = Action.objects.filter(name__istartswith=query)
-    # TODO: use chars actions instead of all
-    for act in actions:
-        btns = [[InlineKeyboardButton('🎲',
-                    callback_data=f'probe,{char_id},{act.id},0'),
-                InlineKeyboardButton('📶',
-                    callback_data='extendprobekbd')]]
-        options.append(
-            InlineQueryResultArticle(
-                title=act.name,
-                description=f'{act.name} Probe',
-                id=uuid4(),
-                input_message_content = InputTextMessageContent(f'{act.name}:'),
-                reply_markup=InlineKeyboardMarkup(btns)
-            ))
+    # https://docs.djangoproject.com/en/dev/topics/db/queries/#complex-lookups-with-q-objects
+    actions = Action.objects.filter(
+            (Q(special=False) | Q(characters__in=[char])),
+            name__istartswith=query,
+            addon=char.addon)
+    stats = Stat.objects.filter(addon=char.addon)
+    # options = []  # collection of buttons with predefined answers
+    # for act in actions:
+    #     options.append(ut.probe_query_result(char, act))
+    # for stat in stats:
+    #     options.append(ut.probe_query_result(char, stat))
+    act_opts = [ut.probe_query_result(char, act) for act in actions]
+    stat_opts = [ut.probe_query_result(char, stat) for stat in stats]
+    options = act_opts + stat_opts
+    # XP only when typed in...  TODO: GM tool/info
     if query.startswith('xp'):
         try:
             xp = int(query.split('xp')[-1])

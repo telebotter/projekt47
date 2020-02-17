@@ -1,12 +1,18 @@
+from telegram import InlineKeyboardButton
+from telegram import InlineKeyboardMarkup
+from telegram import InlineKeyboardButton
+from telegram import InlineKeyboardMarkup
+from telegram import InlineQueryResultArticle
+from telegram import ParseMode
+from telegram import InputTextMessageContent
 from core.models import TelebotUser
 from projekt47.models import Projekt47User
 from projekt47.models import Action
 from projekt47.models import Stat
 from projekt47.constants import *
 import random as rd
+from uuid import uuid4
 import logging
-from telegram import InlineKeyboardButton
-from telegram import InlineKeyboardMarkup
 logger = logging.getLogger()
 
 
@@ -153,3 +159,24 @@ def action_keyboard(char, finish_btn=True, back_btn=True):
                         callback_data=f'cm,skillaction,{action.id}')])
     add_footer(keyboard, back_btn, finish_btn)
     return keyboard
+
+
+def probe_query_result(char, act):
+    """ generates the inline query result article (title, text and message) for
+    a specific action of a character. Works also for stats instead of actions.
+    """
+    if isinstance(act, Stat):
+        cbd = f'statprobe,{char.id},{act.id},0'
+    else:
+        cbd = f'probe,{char.id},{act.id},0'
+    btns = [[InlineKeyboardButton('🎲',
+                callback_data=cbd),
+            InlineKeyboardButton('📶',
+                callback_data='extendprobekbd')]]
+    res = InlineQueryResultArticle(
+            title=act.name,
+            description=f'{act.name} Probe',
+            id=uuid4(),
+            input_message_content = InputTextMessageContent(f'{act.name}:'),
+            reply_markup=InlineKeyboardMarkup(btns))
+    return res

@@ -29,7 +29,7 @@ MSG = {
 'nospleft': 'Keine Punkte mehr verfuegbar!',
 'statsagain': 'Nochmal Werte Skillen. Verbleibnde Skillpunkte: {}',
 'hasmetacard': 'Schreibe <code>/metakarte neu</code> um eine neue Karte zu ziehen.',
-'probe': '{} <i>{} muss mit {} Würfeln über {} würfeln um zu {}</i>\n<b>Ergebniss: {}\nProbendifferenz : {}</b>',
+'probe': '{} <i>{} muss mit {} Würfeln über {} würfeln um {} zu bestehen.</i>\n<b>Ergebniss: {}\nProbendifferenz : {}</b>',
 'askname': 'Wie soll der Charakter heissen? Waehle einen Namen aus den Vorschlaegen, oder sende mir einen eigenen.',
 }
 
