@@ -21,12 +21,26 @@ Es gibt ausserdem zu jedem Addon [vorgefertigte Abenteuer](https://telebotter.sa
 ## Management Commands
 Django bietet die Moeglichkeit der `management.py` eigene Befehle hinzuzufuegen. Erstellt werden koennen im Prinzip wiederverwendbare Scripte/Funktionen, in denen direkt alle Konfigurationen und Models der App (also projekt47) zur Verfuegung stehen. So muss man sich nicht um DB verbindungen logging oder aehnliches kuemmern. [Mehr zu djangos management commands..](https://docs.djangoproject.com/en/3.0/howto/custom-management-commands/)
 
+### Lokale DB initialisieren
+telebotter env promt: ``python manage.py makemigrations``
+``python manage.py migrate``
+``python manage.py makemigrations projekt47 core``
+``python manage.py migrate``
+an dieser stelle kann auch die serverdb.json eingelesen werden
+``python manage.py runserver``
+``python manage.py createsuperuser`` 
+http://127.0.0.1:8000/admin/ in brwoser und ID und PW eingeben
+addons hinzufügen (oder namensliste importieren)
+
+bot starten python manage.py botpolling --username=\*\*\*bot
+
+
 ### datadump
 Daten fuer diesen Bot (+ Userdaten) aus der Server Datenbank zu exportieren:
 ```bash
 python manage.py dumpdata core projekt47 >> serverdb.json
 ```
-Daten in lokaler installation importieren:
+Daten in lokaler installation importieren (db muss vorher leer sein):
 ```bash
 python manage.py loaddata serverdb.json
 ```
