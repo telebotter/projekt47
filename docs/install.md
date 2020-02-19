@@ -54,7 +54,4 @@ Und den [Link](localhost:8080) Browser (auf dem selben Geraet) oeffnen.
 ## Bot starten
 Die oberen Schritte waren einmalig, vom Projektordner aus kann der bot von jetzt an immer mit `python manage.py devbot` gestartet werden und er läuft bis er crashed (oder strg+c). Damit die richtige python umgebung genutzt wird, muss diese (falls nicht als default gesetzt) aktiviert sein. Zur sicherheit:
 
-```
-conda activate telebotter
-python manage.py devbot
-```
+> django-telegrambots wird jetzt auch in der lokalen installation verwendet.. devbot ist nichtmehr noetig
