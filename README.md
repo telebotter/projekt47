@@ -16,12 +16,10 @@ Mindestens eine Person, leitet ein Spiel und ist dabei der allwissende Erzaehler
 Das Uebergeordnete Regelwerk bestimmt, wie gewuerfelt wird und gibt eine grobe Struktur aus Eigenschaften und Aktionen vor. Welche Eigenschaften ein Charakter haben kann und welche Aktionen ihm zur Auswahl stehen, wird in einem Addon definiert. Ebenfalls wird das Szenario also die Hintergrundgeschichte und der Thematische schwerpunkt des Spiels vom jeweiligen Addon vorgegeben. Auf der Website befindet sich eine [Liste von Addons](https://telebotter.sarbot.de/projekt47/addons/) die bereits in Arbeit sind. Beispiele: Scifi, Medival, Fantasy, Schneeballschlacht. Es wird auch moeglich sein eigene Addons zu erstellen, dies allerdings etwas aufwendiger und erfordert Vorbereitungszeit.
 Es gibt ausserdem zu jedem Addon [vorgefertigte Abenteuer](https://telebotter.sarbot.de/projekt47/abenteuer), die der Spielleiter als Inspiration fuer die Gestaltung einer Session nehmen kann.
 
-# Entwicklung
 
-## Management Commands
-Django bietet die Moeglichkeit der `management.py` eigene Befehle hinzuzufuegen. Erstellt werden koennen im Prinzip wiederverwendbare Scripte/Funktionen, in denen direkt alle Konfigurationen und Models der App (also projekt47) zur Verfuegung stehen. So muss man sich nicht um DB verbindungen logging oder aehnliches kuemmern. 
+## Management
 
-[Mehr zu djangos management commands..](https://docs.djangoproject.com/en/3.0/howto/custom-management-commands/)
+[Djangos management commands..](https://docs.djangoproject.com/en/3.0/howto/custom-management-commands/)
 
 [Alle wichtigen commands fuer diesen bot..](https://github.com/telebotter/projekt47/blob/master/docs/management.md)
 
