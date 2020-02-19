@@ -2,6 +2,7 @@ from django.shortcuts import render
 from projekt47.models import *
 from projekt47.constants import *
 
+
 # Create your views here.
 def index(request):
     context = {}
@@ -11,7 +12,7 @@ def index(request):
 def addons(request):
     context = {}
     context['addons'] = Addon.objects.all()
-    return render(request, 'projekt47/addon_list.html', context)
+    return render(request, 'projekt47/addons.html', context)
 
 
 def addon(request, addon_id):

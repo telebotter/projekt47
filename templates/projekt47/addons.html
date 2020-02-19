@@ -1,5 +1,16 @@
 {% extends 'core/base.html' %}
-
+{% load ptags %}
 {% block content %}
-Addons:
+
+<div class="spacer" style="margin-top:100px;"></div>
+
+<div class="container">
+<h1>Addons</h1>
+<div class="card-columns">
+{% for addon in addons %}
+  {% addon_thumb addon %}
+{% endfor %}
+</div>
+
+</div>
 {% endblock content %}

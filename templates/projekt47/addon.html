@@ -1,0 +1,36 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="spacer" style="margin-top:100px;"></div>
+
+<div class="container">
+  <h1>{{ addon.name }}</h1>
+  <p>{{ addon.text }}</p>
+  <h2>Werte</h2>
+  <ul>
+    {% for stat in addon.stats.all %}
+      <li>{{ stat.name }}
+    {% endfor %}
+  </ul>
+  <h2>Aktionen</h2>
+  <ul>
+    {% for action in addon.actions.all %}
+      <li>{{ action.name }}
+    {% endfor %}
+  </ul>
+  <h2>Metakarten</h2>
+  <ul>
+    {% for meta in addon.meta_cards.all %}
+      <li>{{ meta.name }}
+    {% endfor %}
+  </ul>
+  <h2>Ressourcen</h2>
+  <ul>
+    {% for res in addon.ress.all %}
+      <li>{{ res.name }}
+    {% endfor %}
+  </ul>
+  <h2>Hinweise</h2>
+  <h2>Inhalt</h2>
+</div>
+{% endblock %}
