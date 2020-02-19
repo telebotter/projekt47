@@ -4,7 +4,7 @@ from projekt47.constants import *
 import json
 from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
-
+from django.template.loader import render_to_string
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   telegram related models
@@ -85,6 +85,14 @@ class Addon(models.Model):
     def __str__(self):
         return str(self.name)
 
+    def card_context(self):
+        ctx =  {
+            'title': self.name,
+            'url': self.id,
+            'footer': 'Autor: ' + str(self.owner),
+        }
+        return ctx
+
 
 class Adventure(models.Model):
     """ One adventure or story, that belongs to a game and is told by the GM.
@@ -162,7 +170,7 @@ class Action(models.Model):
         verbose_name = 'Aktion'
         verbose_name_plural = 'Aktionen'
     name = models.CharField(max_length=200)
-    addon = models.ForeignKey(Addon, related_name='action',
+    addon = models.ForeignKey(Addon, related_name='actions',
             blank=True, null=True, on_delete=models.SET_NULL)
     stats = models.ManyToManyField(Stat, related_name='actions',
                                 null=True, blank=True)
