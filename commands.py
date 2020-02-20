@@ -205,3 +205,104 @@ ressource.text = 'Zeigt oder aendert die aktuellen Ressourcen eines Spielers.'
 ressource.aliases = ['res', 'vorraete', 'status', 'vitalitaet', 'ressourcen']
 ressource.args = True
 commands.append(ressource)
+
+
+def test_probe(bot, update, args):
+    """ runs Action.probe for action taken from args. If args is int its taken
+    as id, otherwise titles are searched for the arg and probe is run on all.
+    """
+    player = ut.get_player(update.message.from_user)
+    char = player.active_char
+    if char is None:
+        update.message.reply_text('Kein aktivierten char gefunden')
+
+    if len(args) == 0:
+        update.message.reply_text('Bitte gib mir ne ID oder ein Suchbegriff')
+        return
+    try:
+        id = int(args[0])
+        actions = [Action.objects.get(pk=id)]
+    except ValueError:
+        logger.debug('args are not int, use as search string')
+        q = ' '.join(args)
+        actions = Action.objects.filter(addon=char.addon, name__icontains=q)
+    logger.info(f'found actions for query {q}: {len(actions)}')
+    for a in actions:
+        res = a.probe(char)
+        update.message.reply_text(text=MSG['testprobe'].format(**res))
+        logger.info(f'got result for test probe: {res}')
+test_probe.text = 'WIP funktion zum testen verschiedener proben'
+test_probe.args = True
+test_probe.aliases = ['testprobe', 'tp']
+commands.append(test_probe)
+
+
+def mega_test_probe(bot, update, args):
+    """ runs Action probe 1000 times and returns percentage and hists
+    """
+    try:
+        import pandas as pd
+        import datetime as dt
+        from io import BytesIO
+        import matplotlib.pyplot as plt
+    except Exception:
+        update.message.reply_text('library fehlt auf dem server')
+        return
+    player = ut.get_player(update.message.from_user)
+    char = player.active_char
+    if char is None:
+        update.message.reply_text('Kein aktivierten char gefunden')
+
+    if len(args) == 0:
+        update.message.reply_text('Bitte gib mir ne ID oder ein Suchbegriff')
+        return
+    try:
+        id = int(args[0])
+        actions = [Action.objects.get(pk=id)]
+    except ValueError:
+        logger.debug('args are not int, use as search string')
+        q = ' '.join(args)
+        actions = Action.objects.filter(addon=char.addon, name__icontains=q)
+    logger.info(f'found actions for query {q}: {len(actions)}')
+    ress = {}
+    a = actions[0] # only one for now
+    #ress[a.name] =
+    t_0 = dt.datetime.now()
+    ress = {'diff': [], 'all': [], 'each': [],
+            'diff_neach': [], 'diff_each': []}
+    for i in range(1000):
+        res = a.probe(char)
+        ress['all'].append(int(res['all']))
+        ress['each'].append(int(res['each']))
+        ress['diff'].append(int(res['diff']))
+        if res['each']:
+            ress['diff_each'].append(int(res['diff']))
+            ress['diff_neach'].append(0)
+        else:
+            ress['diff_neach'].append(int(res['diff']))
+            ress['diff_each'].append(0)
+    t = dt.datetime.now()-t_0
+    logger.info(f'1000 pobes run in {t}')
+    data = pd.DataFrame.from_dict(ress)
+    plt.figure()
+    ax = data['diff'].hist(bins=range(-10,10))
+    ax.set_title(f'Probendifferenz: {a.name}')
+    #plt.hist([data['diff_each'],data['diff_neach']], stacked=True, color = ['r','g'])
+    iomage = BytesIO()
+    iomage.name = 'histo.png'
+    #plt.savefig(iomage)
+    ax.figure.savefig(iomage)
+    iomage.seek(0)
+    mres = {
+        'action': a.name,
+        'each_p': sum(ress['each'])/10,
+        'all_p': sum(ress['all'])/10,
+        't': t.total_seconds(),
+        'n': res['n'],
+    }
+    #update.message.reply_text(MSG['megaprobe'].format(**mres))
+    bot.send_photo(update.message.chat_id, photo=iomage, caption=MSG['megaprobe'].format(**mres))
+mega_test_probe.text = 'WIP funktion zum testen verschiedener proben'
+mega_test_probe.args = True
+mega_test_probe.aliases = ['megatestprobe', 'megatp', 'mtp']
+commands.append(mega_test_probe)

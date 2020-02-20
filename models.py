@@ -5,7 +5,9 @@ import json
 from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
 from django.template.loader import render_to_string
-
+import logging
+import random as rd
+logger = logging.getLogger(__name__)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   telegram related models
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -81,6 +83,10 @@ class Addon(models.Model):
     skill_points = models.IntegerField(default=3)
     owner = models.ForeignKey(Projekt47User,
             blank=True, null=True, on_delete=models.SET_NULL)
+    # act_probe_fill = models.BooleanField(default=True,
+    #         verbose_name='Vier Werte pro Aktion')
+    # act_probe_sum = models.BooleanField(default=False,
+    #         verbose_name='Werte in Aktionen summieren')
 
     def __str__(self):
         return str(self.name)
@@ -173,14 +179,67 @@ class Action(models.Model):
     addon = models.ForeignKey(Addon, related_name='actions',
             blank=True, null=True, on_delete=models.SET_NULL)
     stats = models.ManyToManyField(Stat, related_name='actions',
-                                null=True, blank=True)
+            null=True, blank=True)
     formula = models.CharField(max_length=200, null=True, blank=True) # '1*W+4'
     answer = models.CharField(max_length=300, null=True, blank=True)
     special = models.BooleanField(default=False,
-                                verbose_name='Skill nötig')
+            verbose_name='Skill nötig')
+    stat_1 = models.ForeignKey(Stat, related_name='stats_1',
+            blank=True, null=True, on_delete=models.SET_NULL)
+    stat_2 = models.ForeignKey(Stat, related_name='stats_2',
+            blank=True, null=True, on_delete=models.SET_NULL)
+    stat_3 = models.ForeignKey(Stat, related_name='stats_3',
+            blank=True, null=True, on_delete=models.SET_NULL)
+    stat_4 = models.ForeignKey(Stat, related_name='stats_4',
+            blank=True, null=True, on_delete=models.SET_NULL)
+
+    @property
+    def stat_list(self):
+        return [stat_1, stat_2, stat_3, stat_4]
 
     def __str__(self):
         return '{} [{}]'.format(self.name, self.addon.name)
+
+    def probe(self, char):
+        """ rolls evaluates the action for a passed character and returns the
+        result. Returns dict:
+        'res_sum': true/false,
+        'diff': summed probe diff,
+        """
+        stats = [self.stat_1, self.stat_2, self.stat_3, self.stat_4]
+        cstats = []
+        for s in stats:
+            cs = char.charstat_set.filter(stat=s).first()
+            if cs is not None:
+                cstats.append(cs.value)
+        # remove None values
+        # cstats = [v for v in cstats if v is not None]
+        cstasts = list(filter(None.__ne__, cstats))  # faster than list compr?
+        n = len(cstats)
+        logger.debug(f'found {n} character values {cstats} for: {self.name}')
+        cstat_sum = sum(cstats)
+        rolls = [rd.randint(1,6) for _ in range(n)]
+        roll_sum = sum(rolls)
+        each = True
+        for i in range(n):
+            if rolls[i] <= cstats[i]:
+                each = False
+                break
+        all = (cstat_sum < roll_sum)
+        result = {
+            'action': self.name,
+            'n': n,
+            'each': each,
+            'all': all,
+            'cstats': cstats,
+            'cstat_sum': cstat_sum,
+            'rolls': rolls,
+            'roll_sum': roll_sum,
+            'diff': roll_sum - cstat_sum
+        }
+        return result
+
+
 
 
 class Character(models.Model):

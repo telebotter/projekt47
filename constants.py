@@ -38,6 +38,8 @@ MSG = {
 'probehidden': '{} Versteckte Probe auf {}:\nErgebniss: {}\nProbendifferenz: {}',
 'askname': 'Wie soll der Charakter heissen? Waehle einen Namen aus den Vorschlaegen, oder sende mir einen eigenen.',
 'charselected': 'Was moechtest du mit dem Charakter {} anstellen?',
+'testprobe': 'Aktion: {action}\nWuerfel: {n}\nErgebnisse: {rolls}\nErfordert: {cstats}\nErg Summe: {roll_sum}\nErf Summe: {cstat_sum}\nEinzeln: {each}\nSumme: {all}\nPD Summe: {diff}',
+'megaprobe': '1000 Proben in {t:.2f}s\nAktion: {action}\nWuerfel: {n}\nSumme: {all_p}%\nEinzeln: {each_p}%',
 }
 
 RULES = [
