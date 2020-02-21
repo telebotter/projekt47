@@ -178,8 +178,8 @@ def probe_message(char, act):
     n = len(stats)
     p = sum([c.value for c in cstats])
     desc = ', '.join([s.abbr for s in stats])
-    msg_text = MSG['probe'].format('🎲', char.name,
-            str(n), str(p), act.name, '❔', '❔')
+    msg_text = MSG['probe'].format(emoji='🎲', name=char.name,
+             cstat_sum = str(p), action=act.name, wmoji = '❔', diff='❔', roll_sum='❔')
     btns = [[InlineKeyboardButton('🎲',
                 callback_data=cbd+'0'),
             InlineKeyboardButton('📶',
