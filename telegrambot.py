@@ -456,7 +456,7 @@ def callback(bot, update):
             return
         malus = int(data[3])
         # probe_diff , res , cstats_sum , num_dic = action.probe(char, action, malus)
-        result = action.probe(char, action, malus)
+        result = action.probe(char) #, malus)
         result['name'] = char.name
         if all([i == 1 for i in result['rolls']]):
             emoji = '💩💩💩'
@@ -471,7 +471,8 @@ def callback(bot, update):
         else:
             emoji = '✅'
         result['emoji'] = emoji
-        result['wmoji'] = [ EMOJ_NUM[i] for i in result['rolls'] ]
+        wmojis = ''.join([ str(EMOJ_NUM[i]) for i in result['rolls'] ])
+        result['wmoji'] = wmojis
         text = MSG['probe'].format(**result)
         if len(data) > 4 and data[4] == 'hidden':
             logger.info('hidden probe')
