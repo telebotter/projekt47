@@ -443,7 +443,7 @@ def callback(bot, update):
                 InlineKeyboardButton('🎲', callback_data=cbd+',0'),
                 InlineKeyboardButton('👁‍🗨', callback_data=cbd+',0,hidden')]
             ]
-            mali = [[-2, -1, +1, +2], [-4, -3, +3, +4]]
+            mali = [[-4, -3, -2, -1], [1, 2, 3, 4]]
             for r in mali:
                 row = []
                 for m in r:
@@ -455,13 +455,28 @@ def callback(bot, update):
             query.edit_message_reply_markup(InlineKeyboardMarkup(rows))
             return
         malus = int(data[3])
-        probe_diff , res , cstats_sum , num_dice = ut.probe(char, action, malus)
-        em = '❌' if probe_diff <= 0 else '✅'
-        text = MSG['probe'].format(em, char.name, num_dice, cstats_sum,
-                action.name, res, probe_diff)
+        # probe_diff , res , cstats_sum , num_dic = action.probe(char, action, malus)
+        result = action.probe(char, action, malus)
+        result['name'] = char.name
+        if all([i == 1 for i in result['rolls']]):
+            emoji = '💩💩💩'
+        elif all([i == 6 for i in result['rolls']]):
+            emoji = '🏆🏆🏆'
+        elif all([i <= 2 for i in result['rolls']]):
+            emoji = '💩'
+        elif all([i >= 5 for i in result['rolls']]):
+            emoji = '🏆'
+        elif result['diff'] <= 0:
+            emoji = '❌'
+        else:
+            emoji = '✅'
+        result['emoji'] = emoji
+        result['wmoji'] = [ EMOJ_NUM[i] for i in result['rolls'] ]
+        text = MSG['probe'].format(**result)
         if len(data) > 4 and data[4] == 'hidden':
             logger.info('hidden probe')
-            text = MSG['probehidden'].format(em, action.name, res, probe_diff)
+            # text = MSG['probehidden'].format(em, action.name, res, result['probe_diff'])
+            text = MSG['probehidden'].format(**result)
             query.answer(text, show_alert=True)
             query.edit_message_reply_markup(None)
             return
