@@ -150,7 +150,18 @@ def draw_metacard(bot, update, args):
 draw_metacard.text = 'Ziehe eine Metakarte'
 draw_metacard.aliases = ['metakarte', 'dc', 'draw', 'drawcard', 'meta', 'karte']
 draw_metacard.args = True
-commands.append(draw_metacard)
+commands.append(draw_metacard) 
+
+def shit(bot, update, args):
+    """ draw a first meta card, or a new one with arg=neu
+    """
+    text = '💩'
+    update.message.reply_text(text, parse_mode='HTML')
+    return
+shit.text = 'Kacke'
+shit.aliases = ['shit']
+shit.args = True
+commands.append(shit)
 
 
 def ressource(bot, update, args):
