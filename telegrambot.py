@@ -460,8 +460,10 @@ def callback(bot, update):
         result['name'] = char.name
         if all([i == 1 for i in result['rolls']]):
             emoji = '💩💩💩'
+            update.message.reply_text('💩', parse_mode='HTML')
         elif all([i == 6 for i in result['rolls']]):
             emoji = '🏆🏆🏆'
+            update.message.reply_text('🥳', parse_mode='HTML')
         elif all([i <= 2 for i in result['rolls']]):
             emoji = '💩'
         elif all([i >= 5 for i in result['rolls']]):
