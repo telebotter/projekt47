@@ -76,26 +76,6 @@ def roll(n=1):
     return sum(rolls)
 
 
-def probe(char, action, malus=0):
-    """ can also take a stat instead of an action
-    returns probe_diff, diceresults, cstats_sum, number of dices
-    """
-    if isinstance(action, Stat):
-        act_stats = [action]
-    else:
-        act_stats = action.stats.all()
-    cstats = char.charstat_set.filter(stat__in=act_stats)
-    logger.info(f'Character stats: {cstats}')
-    cstats_sum = sum([s.value+malus for s in cstats])
-    logger.info(f'csum {cstats_sum}')
-    num_dice = cstats.count()
-    res = roll(num_dice)
-    probe_diff = res - cstats_sum
-    logger.info(f'result: {probe_diff}')
-    return probe_diff , res , cstats_sum , num_dice
-
-
-
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   telegram stuff
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

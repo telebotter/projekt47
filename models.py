@@ -178,10 +178,7 @@ class Action(models.Model):
     name = models.CharField(max_length=200)
     addon = models.ForeignKey(Addon, related_name='actions',
             blank=True, null=True, on_delete=models.SET_NULL)
-    stats = models.ManyToManyField(Stat, related_name='actions',
-            null=True, blank=True)
-    formula = models.CharField(max_length=200, null=True, blank=True) # '1*W+4'
-    answer = models.CharField(max_length=300, null=True, blank=True)
+    text = models.CharField(max_length=800, null=True, blank=True)
     special = models.BooleanField(default=False,
             verbose_name='Skill nötig')
     stat_1 = models.ForeignKey(Stat, related_name='stats_1',
@@ -192,9 +189,10 @@ class Action(models.Model):
             blank=True, null=True, on_delete=models.SET_NULL)
     stat_4 = models.ForeignKey(Stat, related_name='stats_4',
             blank=True, null=True, on_delete=models.SET_NULL)
+    gm_only = models.BooleanField(default=False, verbose_name='GM Aktion')
 
     @property
-    def stat_list(self):
+    def stats(self):
         return [stat_1, stat_2, stat_3, stat_4]
 
     def __str__(self):
@@ -238,8 +236,6 @@ class Action(models.Model):
             'diff': roll_sum - cstat_sum
         }
         return result
-
-
 
 
 class Character(models.Model):

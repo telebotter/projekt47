@@ -10,19 +10,28 @@ admin.site.register(Adventure)
 # admin.site.register(CharStat)
 admin.site.register(DefaultName)
 
-# admin.site.register(Character)
+
+
+@admin.register(Action)
+class ActionAdmin(admin.ModelAdmin):
+
+    def get_form(self, request, obj=None, **kwargs):
+        self.instance = obj
+        return super(ActionAdmin, self).get_form(request, obj=obj, **kwargs)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name in ["stat_1", "stat_2", "stat_3"]:
+            kwargs["queryset"] = Stat.objects.filter(addon=self.instance.addon)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+
+# define inline layouts to add them in other models admin form
 
 class CharStatInline(admin.TabularInline):
     model = CharStat
     extra = 1
 
-
-@admin.register(Character)
-class CharacterAdmin(admin.ModelAdmin):
-    inlines = (CharStatInline,)
-
-
-# define inline layouts to add them in other models admin form
 
 class StatInline(admin.TabularInline):
     model = Stat
@@ -32,6 +41,16 @@ class StatInline(admin.TabularInline):
 class ActionInline(admin.TabularInline):
     model = Action
     extra = 1
+    form = ActionAdmin.form
+
+    # def get_form(self, request, obj=None, **kwargs):
+    #     self.instance = obj
+    #     return super(ActionInline, self).get_form(request, obj=obj, **kwargs)
+    #
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     if db_field.name in ["stat_1", "stat_2", "stat_3"] and hasattr(self, 'instance'):
+    #         kwargs["queryset"] = Stat.objects.filter(addon=self.instance.addon)
+    #     return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class MetaCardInline(admin.TabularInline):
@@ -42,6 +61,21 @@ class ResInline(admin.TabularInline):
     model = Ressource
     extra = 1
 
+
 @admin.register(Addon)
 class AddonAdmin(admin.ModelAdmin):
     inlines = [StatInline, ResInline, ActionInline, MetaCardInline]
+
+    # def get_form(self, request, obj=None, **kwargs):
+    #     self.instance = obj
+    #     return super(AddonAdmin, self).get_form(request, obj=obj, **kwargs)
+    #
+    # def formfield_for_foreignkey(self, db_field, request, **kwargs):
+    #     if db_field.name in ["stat_1", "stat_2", "stat_3"] and self.instance:  # and hasattr(self, 'instance'):
+    #         kwargs["queryset"] = Stat.objects.filter(addon=self.instance.addon)
+    #     return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+@admin.register(Character)
+class CharacterAdmin(admin.ModelAdmin):
+    inlines = (CharStatInline,)

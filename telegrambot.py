@@ -476,7 +476,6 @@ def callback(bot, update):
         text = MSG['probe'].format(**result)
         if len(data) > 4 and data[4] == 'hidden':
             logger.info('hidden probe')
-            # text = MSG['probehidden'].format(em, action.name, res, result['probe_diff'])
             text = MSG['probehidden'].format(**result)
             query.answer(text, show_alert=True)
             query.edit_message_reply_markup(None)
