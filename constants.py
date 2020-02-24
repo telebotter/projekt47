@@ -43,10 +43,17 @@ MSG = {
 }
 
 RULES = [
-{ # 1
+{  # 1
 'short': 'Der Spielleiter (SL) hat die oberste Entscheidungsgewalt!',
 'long': 'Der Spielleiter (SL) hat die oberste Entscheidungsgewalt! Er bestimmt was passiert. Aus dieser Macht erwächst auch die Verantwortung, den Spielern ein möglichst tolles Spielerlebnis zu bereiten. ',
-},{ # 2
+},{  # 2
 'short': 'Aktionen werden der Reihe nach ausgeführt!',
 'long': 'Damit jeder Spieler die Gelegenheit erhält seinen Charakter in jeder Situation auszuspielen, können Spieler der Reihe nach (Uhrzeigersinn) ankuendigen, welche Aktionen sie ausführen möchten. Der Spielleiter fordert ggf. dazu auf entsprechende Proben auszuführen. Haben sich alle Spieler geäußert, führt der Spielleiter die Aktionen der NPCs aus. In Situationen in denen es logisch erscheint, dass die Charaktere in unterschiedlicher Reihenfolge agieren, (zB wenn sie mit unterschiedlicher Geschwindigkeit auf ein Ziel zu stürmen) sollte dies entsprechend ausgespielt werden.'
-}]
+},{  # 3
+'short': 'Der Erfolg einer Aktion wird durch Würfeln bestimmt!',
+'long': 'Aktionen haengen von drei Basiswerten ab. Um eine Aktion durchzufuehren würfelt der Spieler mit drei Würfeln. Übersteigt die Summe der Augen, die Summe der Werte des Charakters gilt die Probe allgemein als bestanden. Durch besondere Umstände, können Proben durch Ansage des SLs erschwert (-x) oder erleichtert (+x) werden. Dieser Wert wird auf die Wuerfelsumme addiert. Wuerfelt der Spieler nur 5 oder 6, kann der SM einen Bonus aussprechen, zB verdopplung des Schadens eines Angriffs. Nur 1 und 2 hingegen, lässt die Aktion katastrophal scheitern.',
+},{  # 4
+'short': 'Eigenverantwortliches Rollenspiel!',
+'long': 'Da die Regeln abstrakt und Aktionen oder Werte unterschiedlich starken einfluss auf das Spiel haben können, liegt ein Teil der Verantworung für ein ausgeglichenes Rollenspielerlebnis bei dem Spieler. Sehr abstrakt formulierte Aktionen wie <i>Projektilzauber</i> sollten vom Spieler für ihren Charakter konkretisiert werden, ohne das sie zu stark oder nutzlos werden. Werte und Aktionen sollten so gewählt werden, dass sie am besten zur Geschichte oder zum Charakter passen und nicht um die Warscheinlichkeit zum Gelingen von Proben zu maximieren.',
+}
+]

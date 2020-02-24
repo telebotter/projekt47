@@ -22,7 +22,7 @@ def addon(request, addon_id):
 
 
 def rules(request):
-    context = {}
+    context = {'rules': RULES}
     return render(request, 'projekt47/rules.html', context)
 
 

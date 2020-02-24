@@ -206,7 +206,7 @@ class Action(models.Model):
     def __str__(self):
         return '{} [{}]'.format(self.name, self.addon.name)
 
-    def probe(self, char):
+    def probe(self, char, malus=0):
         """ rolls evaluates the action for a passed character and returns the
         result. Returns dict:
         'res_sum': true/false,
@@ -225,7 +225,7 @@ class Action(models.Model):
         logger.debug(f'found {n} character values {cstats} for: {self.name}')
         cstat_sum = sum(cstats)
         rolls = [rd.randint(1,6) for _ in range(n)]
-        roll_sum = sum(rolls)
+        roll_sum = sum(rolls) + malus
         each = True
         for i in range(n):
             if rolls[i] <= cstats[i]:

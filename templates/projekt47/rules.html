@@ -1,0 +1,22 @@
+{% extends 'core/base.html' %}
+{% load ptags %}
+{% block content %}
+
+<div class="spacer" style="margin-top:100px;"></div>
+
+<div class="container">
+<h1>Regeln</h1>
+<p>
+<div class="">
+  <ol class="rules">
+  {% for rule in rules %}
+    <li>
+      <h5>{{ rule.short }}</h5>
+      <p>{{ rule.long }}</p>
+    </li>
+  {% endfor %}
+  </ol>
+</div>
+
+</div>
+{% endblock content %}

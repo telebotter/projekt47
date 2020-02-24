@@ -457,7 +457,7 @@ def callback(bot, update):
             return
         malus = int(data[3])
         # probe_diff , res , cstats_sum , num_dic = action.probe(char, action, malus)
-        result = action.probe(char) #, malus)
+        result = action.probe(char, malus=malus) #, malus)
         result['name'] = char.name
         if all([i == 1 for i in result['rolls']]):
             emoji = '💩💩💩'

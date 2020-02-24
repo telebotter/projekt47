@@ -307,3 +307,30 @@ mega_test_probe.text = 'WIP funktion zum testen verschiedener proben'
 mega_test_probe.args = True
 mega_test_probe.aliases = ['megatestprobe', 'megatp', 'mtp']
 commands.append(mega_test_probe)
+
+
+def roll(bot, update, args):
+    """ rollt args wuerfel und gibt die einzel werte sowie die summe zurueck.
+    """
+    try:
+        n = int(args[0])
+    except Exception:
+        n = 1
+    rolls = [rd.randint(1,6) for _ in range(n)]
+    txt = '+'.join([ EMOJ_NUM[r] for r in rolls ])
+    if len(rolls) > 1:
+        txt += f' = {sum(rolls)}'
+    update.message.reply_text(txt, parse_mode='HTML')
+roll.text = 'Mehrfach würfeln'
+roll.args = True
+roll.aliases = ['wuerfeln', 'wurf', 'roll']
+commands.append(roll)
+
+
+def triroll(bot, update, args):
+    """ shortcut fuer /roll 3 """
+    roll(bot, update, ['3'])
+triroll.text = 'Kurzform für /wuerfeln 3'
+triroll.args = True
+triroll.aliases = ['probe', 'triroll', 'dummyprobe']
+commands.append(triroll)
