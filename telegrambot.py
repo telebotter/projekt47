@@ -538,15 +538,10 @@ def inlinequery(bot, update):
             (Q(special=False) | Q(characters__in=[char])),
             name__icontains=query,
             addon=char.addon)
-    stats = Stat.objects.filter(addon=char.addon, name__icontains=query)
-    # options = []  # collection of buttons with predefined answers
-    # for act in actions:
-    #     options.append(ut.probe_query_result(char, act))
-    # for stat in stats:
-    #     options.append(ut.probe_query_result(char, stat))
+    # stats = Stat.objects.filter(addon=char.addon, name__icontains=query)
     act_opts = [ut.probe_query_result(char, act) for act in actions]
-    stat_opts = [ut.probe_query_result(char, stat) for stat in stats]
-    options = act_opts + stat_opts
+    # stat_opts = [ut.probe_query_result(char, stat) for stat in stats]
+    options = act_opts # + stat_opts
     # XP only when typed in...  TODO: GM tool/info
     if query.startswith('xp'):
         try:

@@ -153,7 +153,7 @@ def probe_message(char, act):
         desc = act.abbr
     else:
         cbd = f'probe,{char.id},{act.id},'
-        stats = act.stats.all()
+        stats = act.stats
     cstats = char.charstat_set.filter(stat__in=stats)
     n = len(stats)
     p = sum([c.value for c in cstats])

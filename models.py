@@ -187,13 +187,11 @@ class Action(models.Model):
             blank=True, null=True, on_delete=models.SET_NULL)
     stat_3 = models.ForeignKey(Stat, related_name='stats_3',
             blank=True, null=True, on_delete=models.SET_NULL)
-    stat_4 = models.ForeignKey(Stat, related_name='stats_4',
-            blank=True, null=True, on_delete=models.SET_NULL)
     gm_only = models.BooleanField(default=False, verbose_name='GM Aktion')
 
     @property
     def stats(self):
-        return [stat_1, stat_2, stat_3, stat_4]
+        return [self.stat_1, self.stat_2, self.stat_3]
 
     def __str__(self):
         return '{} [{}]'.format(self.name, self.addon.name)
@@ -204,7 +202,7 @@ class Action(models.Model):
         'res_sum': true/false,
         'diff': summed probe diff,
         """
-        stats = [self.stat_1, self.stat_2, self.stat_3, self.stat_4]
+        stats = [self.stat_1, self.stat_2, self.stat_3]
         cstats = []
         for s in stats:
             cs = char.charstat_set.filter(stat=s).first()

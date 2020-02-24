@@ -14,16 +14,6 @@ def add_sp(bot, update, args):
     """ provides the active character of player one or more (args) SP.
     Works with negative numbers as well.
     """
-    # check for linked user (entity)
-    # NOTE: Mentions sind uncool, weil nur in gruppe moeglich und nervt
-    # entities = update.message.parse_entities()
-    # mentions = []
-    # for entity in entities:
-    #     logger.info(f'entety: {entity}')
-    #     parsed_entity = update.message.parse_entity(entity)
-    #     logger.info(f'parsed: {parsed_entity}')
-    #     if entity['user']:
-    #         logger.info(f'found user: {entity["user"]}')
     tg_user = ut.get_third_user(update)
     player = ut.get_player(tg_user)
     char = player.active_char
@@ -150,7 +140,7 @@ def draw_metacard(bot, update, args):
 draw_metacard.text = 'Ziehe eine Metakarte'
 draw_metacard.aliases = ['metakarte', 'dc', 'draw', 'drawcard', 'meta', 'karte']
 draw_metacard.args = True
-commands.append(draw_metacard) 
+commands.append(draw_metacard)
 
 def shit(bot, update, args):
     """ draw a first meta card, or a new one with arg=neu
