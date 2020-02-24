@@ -146,6 +146,16 @@ class Stat(models.Model):
     def __str__(self):
         return '{} [{}]'.format(self.name, self.addon.name)
 
+    def as_action(self):
+        """ return a stat as action (all stats = self + desc)
+        """
+        act = Action(name=self.name, addon=self.addon,
+                gm_only=False, special=False, text="",
+                stat_1=self, stat_2=self, stat_3=self)
+        act.is_stat = True
+        return act
+
+
 
 class Ressource(models.Model):
     """ Ressource is a stat that is has a fixed maximum and minimum and can be

@@ -429,7 +429,8 @@ def callback(bot, update):
             action = Action.objects.get(pk=data[2])
         # pass a stat as fake action
         elif data[0] == 'statprobe':
-            action = Stat.objects.get(pk=data[2])
+            act_stat = Stat.objects.get(pk=data[2])
+            action = act_stat.as_action()
         else:
             logger.error('unexpected cbd for probe')
             return
@@ -538,10 +539,11 @@ def inlinequery(bot, update):
             (Q(special=False) | Q(characters__in=[char])),
             name__icontains=query,
             addon=char.addon)
-    # stats = Stat.objects.filter(addon=char.addon, name__icontains=query)
+    stats = Stat.objects.filter(addon=char.addon, name__icontains=query)
+    logger.info(f'found stats for query: {stats.count()}')
     act_opts = [ut.probe_query_result(char, act) for act in actions]
-    # stat_opts = [ut.probe_query_result(char, stat) for stat in stats]
-    options = act_opts # + stat_opts
+    stat_opts = [ut.probe_query_result(char, stat) for stat in stats]
+    options = act_opts + stat_opts
     # XP only when typed in...  TODO: GM tool/info
     if query.startswith('xp'):
         try:

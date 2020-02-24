@@ -150,14 +150,14 @@ def probe_message(char, act):
     if isinstance(act, Stat):
         cbd = f'statprobe,{char.id},{act.id},'
         stats = [act]
-        desc = act.abbr
+        desc = f'3x {act.abbr}'
     else:
         cbd = f'probe,{char.id},{act.id},'
         stats = act.stats
+        desc = ', '.join([s.abbr for s in stats])
     cstats = char.charstat_set.filter(stat__in=stats)
     n = len(stats)
     p = sum([c.value for c in cstats])
-    desc = ', '.join([s.abbr for s in stats])
     msg_text = MSG['probe'].format(emoji='🎲', name=char.name,
              cstat_sum = str(p), action=act.name, wmoji = '❔', diff='❔', roll_sum='❔')
     btns = [[InlineKeyboardButton('🎲',
