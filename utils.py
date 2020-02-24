@@ -150,7 +150,7 @@ def probe_message(char, act):
     if isinstance(act, Stat):
         cbd = f'statprobe,{char.id},{act.id},'
         stats = [act]
-        desc = act.abbr
+        desc = f'3x {act.abbr}'
     else:
         cbd = f'probe,{char.id},{act.id},'
         stats = act.stats
