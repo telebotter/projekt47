@@ -7,7 +7,12 @@ from telegram import InlineKeyboardMarkup
 from django.template.loader import render_to_string
 import logging
 import random as rd
+from uuid import uuid4
+import os
 logger = logging.getLogger(__name__)
+
+
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   telegram related models
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -156,7 +161,6 @@ class Stat(models.Model):
         return act
 
 
-
 class Ressource(models.Model):
     """ Ressource is a stat that is has a fixed maximum and minimum and can be
     modified during the game. Like mana and health.
@@ -253,6 +257,14 @@ class Character(models.Model):
     class Meta:
         verbose_name = 'Charakter'
         verbose_name_plural = 'Charaktere'
+
+    def avatar_file_path(char, fname):
+        ext = os.path.splitext(fname)[1]
+        new_fname = f'projekt47/avatars/{uuid4()}{ext}'
+        return new_fname
+
+    image = models.ImageField(upload_to=avatar_file_path,
+                    null=True, blank=True)
     owner = models.ForeignKey(Projekt47User,
             on_delete=models.SET_NULL,
             null=True, blank=True)
@@ -262,15 +274,14 @@ class Character(models.Model):
             on_delete=models.CASCADE,
             null=True, blank=True)
     stats = models.ManyToManyField(Stat,
-            through="CharStat",
-            limit_choices_to={'addon': addon})
+            through="CharStat")
+            # limit_choices_to={'addon': addon})
     ress = models.ManyToManyField(Ressource,
-            through="CharRes",
-            limit_choices_to={'addon': addon})
+            through="CharRes")
+            # limit_choices_to={'addon': addon})
     actions = models.ManyToManyField(Action,
             related_name='characters',
-            related_query_name='characters',
-            null=True, blank=True)  # only special actions
+            related_query_name='characters')  # only special actions
     skill_points = models.IntegerField(default=0)
     finished = models.BooleanField(default=False)
     text = models.TextField(null=True, blank=True)
@@ -323,8 +334,7 @@ class Session(models.Model):
     name = models.CharField(max_length=200, default='unnamed')
     addon = models.ForeignKey(Addon, related_name='sessions',
                                 on_delete=models.SET_NULL, null=True)
-    characters = models.ManyToManyField(Character, related_name='sessions',
-                                null=True, blank=True)
+    characters = models.ManyToManyField(Character, related_name='sessions')
 
     def __str__(self):
         return '{} [{}]'.format(self.name, self.game.name)
