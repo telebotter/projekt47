@@ -22,7 +22,9 @@ import random
 import logging
 from django.conf import settings
 from django.db.models import Q
+from django.core.files.storage import FileSystemStorage
 import os
+import io
 # import pwd
 #
 # # Run when import
@@ -574,6 +576,23 @@ def inlinequery(bot, update):
     update.inline_query.answer(options, cache_time=0)
 
 
+def handle_image(bot, update):
+    player = ut.get_player(update.message.from_user)
+    char = player.active_char
+    if char is None:
+        logger.warning('image from user without active char')
+        return
+    logger.info('setting new image')
+    for p in update.message.photo:
+        logger.info(f'width: {p.width}')
+    photo = update.message.photo[-1]
+    #image_stream = io.BytesIO()
+    #photo.get_file().download(out=image_stream)
+    tg_file = photo.get_file()
+    folder = os.path.join(settings.MEDIA_ROOT, 'projekt47/avatars/', str(uuid4()) + '.jpg')
+    tg_file.download(custom_path=folder)
+    #logger.info(type(image))
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #   run the bot
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -587,7 +606,8 @@ def add_shared_handlers(dp):
 
     # handlers for both methods
     dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(CommandHandler('normaltest', sharetest))
+    dp.add_handler(MessageHandler(Filters.document.image, handle_image))
+    dp.add_handler(MessageHandler(Filters.photo, handle_image))
 
     # add handlers for commands.py
     for cmd in commands:
