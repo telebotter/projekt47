@@ -99,8 +99,11 @@ class Addon(models.Model):
     def card_context(self):
         ctx =  {
             'title': self.name,
-            'url': self.id,
+            #'subtitle': f'Autor: {self.owner}',
+            'urls': [{'href': self.id, 'link': 'Mehr..'}],
             'footer': 'Autor: ' + str(self.owner),
+            'class': 'addon-thumb',
+            'text': self.text,
         }
         return ctx
 

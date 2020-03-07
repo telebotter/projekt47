@@ -1,5 +1,5 @@
 {% extends 'core/base.html' %}
-{% load ptags %}
+{% load telebottertags %}
 {% block content %}
 
 <div class="spacer" style="margin-top:100px;"></div>
@@ -8,7 +8,7 @@
 <h1>Addons</h1>
 <div class="card-columns">
 {% for addon in addons %}
-  {% addon_thumb addon %}
+  {% as_card addon.card_context %}
 {% endfor %}
 </div>
 
