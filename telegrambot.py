@@ -39,12 +39,13 @@ logger = logging.getLogger(__name__)
 
 
 
-def character_menu(bot, update):
+def character_menu(update, context):
     """ entry point for the character select/create menu (cm_ prefix).
     Send message on `/charakter`. Choose character.
     NOTE: renamed from start() to character_menu() and Held to Charakter.
     NOTE: replaced placeholder with DB queries
     """
+    bot = context.bot
     logger.debug(f'{update.message.from_user.first_name} started conversation')
     text = 'Waehle einen Helden'
     keyboard = [[InlineKeyboardButton('Neuer Charakter',
@@ -63,13 +64,14 @@ def character_menu(bot, update):
     return CHOOSE_ADDON
 
 
-def cm_choose_addon(bot, update):
+def cm_choose_addon(update, context):
     """ Show new options of buttons too choose a addon. This is the first and
     required step to create a new character. The character object is already
     created here.
     # TODO: add date_created and created to char, and use management command
     to clean up from time to time.
     """
+    bot = context.bot
     logger.debug(f'select/create char')
     query = update.callback_query
     data = query.data.split(',')
@@ -112,7 +114,7 @@ def cm_choose_addon(bot, update):
     return CREATE_CHARACTER
 
 
-def cm_selected(bot, update):
+def cm_selected(update, context):
     """ this is called when a player has chosen some operation on an existing
     character.
     """
@@ -141,10 +143,11 @@ def cm_selected(bot, update):
         return ConversationHandler.END
 
 
-def cm_name(bot, update):
+def cm_name(update, context):
     """ Saves previous choice (addon).
     Send some suggestions for names or read from user input.
     """
+    bot = context.bot
     query = update.callback_query
     player = ut.get_player(query.from_user)
     char = player.active_char
@@ -176,7 +179,7 @@ def cm_name(bot, update):
     return BASICS
 
 
-def cm_stats_custom_name(bot, update):
+def cm_stats_custom_name(update, context):
     """ handles incomming message during name selection state.
     Gather all stats that are available for the selected addon and list them.
     The function has to be called everytime one of the stats change.
@@ -189,12 +192,13 @@ def cm_stats_custom_name(bot, update):
     update.message.reply_text(text, reply_markup=reply_markup)
 
 
-def cm_stats(bot, update):
+def cm_stats(update, context):
     """Saves previous choice (name).
     Gather all stats that are available for the selected addon and list them.
     The function has to be called everytime one of the stats change.
     #TODO: track unset stats (freie Skillpunkte).
     """
+    bot = context.bot
     query = update.callback_query
     player = ut.get_player(query.from_user)
     data = query.data.split(',')
@@ -216,11 +220,13 @@ def cm_stats(bot, update):
     return SPECIALS
 
 
-def cm_actions(bot, update):
+def cm_actions(update, context):
     """ save the stat changes and update the skill keyboard. If cb data contains
     `ok` (stat skill finished), save and post action keyboard instead.
     returning current conversation state (SPECIALS) is like doing nothing.
     """
+    bot = context.bot
+    args = context.args
     query = update.callback_query
     player = ut.get_player(query.from_user)
     char = player.active_char
@@ -316,11 +322,13 @@ def cm_actions(bot, update):
     return SPECIALS
 
 
-def cm_end(bot, update):
+def cm_end(update, context):
     """Returns `ConversationHandler.END`, which tells the
     ConversationHandler that the conversation is over
     TODO: loop the action skill keyboard until finish is pressed
     """
+    args = context.args
+    bot = context.bot
     query = update.callback_query
     data = query.data.split(',')
     player = ut.get_player(query.from_user)
@@ -377,34 +385,25 @@ def cm_end(bot, update):
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-def error(bot, update, error):
+def error(update, context):
+    error = context.error
     logger.exception(f'PTB Handled Error (update in bot log): {error}')
     logger.info(f'update that caused an error: {str(update)}')
 
 
-def start(bot, update):
+def start(update, context):
     tg_user = update.message.from_user
     p_user = ut.get_player(tg_user, update=True)
     update.message.reply_text(f'hallo {p_user.telebot_user.first_name}')
 
 
-def devtest(bot, update):
-    update.message.reply_text('Ich bin der pollende test bot')
 
-
-def webtest(bot, update):
-    update.message.reply_text('Ich bin der offizielle web bot')
-
-
-def sharetest(bot, update):
-    update.message.reply_text('Ich bin eine normale antwort')
-
-
-def callback(bot, update):
+def callback(update, context):
     """ this function is called when a button is pressed.
     The button data is a csv string, that is split and evaluated from left to
     right.
     """
+    bot = context.bot
     query = update.callback_query
     data = query.data.split(',')
     msg = query.message  # only works for normal bot msgs
@@ -515,7 +514,7 @@ def callback(bot, update):
             return
 
 
-def inlinequery(bot, update):
+def inlinequery(update, context):
     """ handles the user input after @botname. Searches available char actions
     and turns them into a message with a roll-dice button.
     Since we need to store the message anyways I added a keyboard property to
@@ -531,6 +530,7 @@ def inlinequery(bot, update):
     the InlineQueryResultArticle.id??????? This is really hackish, but could be
     a solution in combination with feedback updates, which contain this id.
     """
+    bot = context.bot
     query = update.inline_query.query
     logger.debug('query update')
     player = ut.get_player(update.inline_query.from_user)
@@ -576,7 +576,8 @@ def inlinequery(bot, update):
     update.inline_query.answer(options, cache_time=0)
 
 
-def handle_image(bot, update):
+def handle_image(update, context):
+    bot = context.bot
     player = ut.get_player(update.message.from_user)
     char = player.active_char
     if char is None:
@@ -614,10 +615,9 @@ def add_shared_handlers(dp):
 
     # add handlers for commands.py
     for cmd in commands:
-        pass_args = getattr(cmd, 'args', False)  # will be obsolete with context
         for alias in cmd.aliases:
             logger.info(f'adding {alias}')
-            dp.add_handler(CommandHandler(alias, cmd, pass_args=pass_args))
+            dp.add_handler(CommandHandler(alias, cmd))
 
     # special handlers
     cm_handler = ConversationHandler(
@@ -649,17 +649,3 @@ def main():
     dp = DjangoTelegramBot.getDispatcher(settings.PROJEKT47_BOT)
     add_shared_handlers(dp)
     # add webhook specific handlers below
-    dp.add_handler(CommandHandler('webtest', webtest))
-
-
-def devmode():
-    """ function called by manage.py in an local environment (dev mode)
-    """
-    up = Updater(token=settings.PROJEKT47_TOKEN)
-    dp = up.dispatcher
-    add_shared_handlers(dp)
-    # add polling specific handlers (or under development) below
-    dp.add_handler(CommandHandler('devtest', devtest))
-    # start the update loop
-    up.start_polling()
-    up.idle()
