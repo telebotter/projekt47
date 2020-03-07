@@ -589,8 +589,11 @@ def handle_image(bot, update):
     #image_stream = io.BytesIO()
     #photo.get_file().download(out=image_stream)
     tg_file = photo.get_file()
-    folder = os.path.join(settings.MEDIA_ROOT, 'projekt47/avatars/', str(uuid4()) + '.jpg')
-    tg_file.download(custom_path=folder)
+    fname = os.path.join('projekt47/avatars/', str(uuid4()) + '.jpg')
+    fpath = os.path.join(settings.MEDIA_ROOT, fname)
+    tg_file.download(custom_path=fpath)
+    char.image.name = fname
+    char.save()
     #logger.info(type(image))
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

@@ -4,6 +4,7 @@ from projekt47 import utils as ut
 from projekt47.constants import *
 from projekt47.models import *
 from projekt47.models import Projekt47User
+from django.conf import settings
 import operator
 
 logger = logging.getLogger(__name__)
@@ -59,7 +60,13 @@ def info_text(bot, update, args):
     tg_user = ut.get_third_user(update)
     player = ut.get_player(tg_user)
     char = player.active_char
-    update.message.reply_text(char.info_text(), parse_mode='HTML')
+    # check for image and send if it's there
+    if char.image:
+        # logger.warning(f'ImgField.url: {char.image.url}')
+        update.message.reply_photo(photo=settings.BASE_URL+char.image.url,
+                    quote=False, caption=char.info_text(), parse_mode='HTML')
+    else:
+        update.message.reply_text(char.info_text(), parse_mode='HTML', quote=False)
 info_text.text = 'Infotext zu deinem Char oder dem eines Freundes (@/quote)'
 info_text.aliases = ['info', 'infotext']
 info_text.args = True
