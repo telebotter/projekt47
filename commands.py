@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 commands = []
 
 
-def add_sp(bot, update, args):
+def add_sp(update, context):
     """ provides the active character of player one or more (args) SP.
     Works with negative numbers as well.
     """
@@ -34,11 +34,10 @@ def add_sp(bot, update, args):
 add_sp.text = 'Gib deinem activen Charakter einen oder mehrere Skillpunkte.'
 add_sp.aliases = ['addskillpoints', 'addskillpoint',
                 'skillpunkt', 'skillpunkte', 'xp']
-add_sp.args = True  # TODO: this should be obsolet when context is used.
 commands.append(add_sp)
 
 
-def activate_char(bot, update, args):
+def activate_char(update, context):
     """ debug command, to manually select a character by id.
     """
     char = Character.objects.get(pk=args[0])
@@ -48,11 +47,10 @@ def activate_char(bot, update, args):
     update.message.reply_text(f'Charakter {char.name} aktiviert')
 activate_char.text = 'Aktiviert einen Charakter ueber seine ID'
 activate_char.aliases = ['aktiviere', 'aktivieren', 'activate', 'enable']
-activate_char.args = True
 commands.append(activate_char)
 
 
-def info_text(bot, update, args):
+def info_text(update, context):
     """ posts info text (story/description) of this users active char.
     TODO: ut.get_third_user() check message for mention entities or quoted
     message authors, to get those users activated char info instead.
@@ -69,11 +67,10 @@ def info_text(bot, update, args):
         update.message.reply_text(char.info_text(), parse_mode='HTML', quote=False)
 info_text.text = 'Infotext zu deinem Char oder dem eines Freundes (@/quote)'
 info_text.aliases = ['info', 'infotext']
-info_text.args = True
 commands.append(info_text)
 
 
-def info_stats(bot, update, args):
+def info_stats(update, context):
     """ posts stats text (story/description) of this users active char.
     TODO: ut.get_third_user() check message for mention entities or quoted
     message authors, to get those users activated char info instead.
@@ -88,32 +85,31 @@ info_stats.args = True
 commands.append(info_stats)
 
 
-def set_story(bot, update, args):
+def set_story(update, context):
     """ posted story vom aktuellen char wenn kein argument, ansonsten wird sie
     neu geschrieben.
     """
     player = ut.get_player(update.message.from_user)
     char = player.active_char
-    if not len(args)>0:
+    if not len(context.args)>0:
         update.message.reply_text(f'Beschreibung: {char.text}')
         return
-    story = ' '.join(args)
+    story = ' '.join(context.args)
     char.text = story
     char.save()
     update.message.reply_text('Beschreibung geaendert!')
 set_story.text = 'Schreibe einen kurzen Text zu deinem Charakter'
 set_story.aliases = ['story', 'text', 'beschreibung']
-set_story.args = True
 commands.append(set_story)
 
 
-def show_rules(bot, update, args):
+def show_rules(update, context):
     """ posted alle regeln in kurz oder die nummer aus args in lang.
     """
     # handle arguments
-    if len(args) > 0:
+    if len(context.args) > 0:
         try:
-            text = RULES[int(args[0])-1]['long']
+            text = RULES[int(context.args[0])-1]['long']
             update.message.reply_text(text)
         except:
             update.message.reply_text(MSG['norule'])
@@ -126,7 +122,6 @@ def show_rules(bot, update, args):
     update.message.reply_text(text, parse_mode='HTML')
 show_rules.text = 'Zeigt Regeln als Uebersicht oder im Volltext an'
 show_rules.aliases = ['regeln', 'rules', 'regel', 'rule']
-show_rules.args = True
 commands.append(show_rules)
 
 
@@ -146,10 +141,10 @@ def draw_metacard(bot, update, args):
     update.message.reply_text(text, parse_mode='HTML')
 draw_metacard.text = 'Ziehe eine Metakarte'
 draw_metacard.aliases = ['metakarte', 'dc', 'draw', 'drawcard', 'meta', 'karte']
-draw_metacard.args = True
 commands.append(draw_metacard)
 
-def shit(bot, update, args):
+
+def shit(update, context):
     """ draw a first meta card, or a new one with arg=neu
     """
     text = '💩'
@@ -157,14 +152,15 @@ def shit(bot, update, args):
     return
 shit.text = 'Kacke'
 shit.aliases = ['shit']
-shit.args = True
 commands.append(shit)
 
 
-def ressource(bot, update, args):
+def ressource(update, context):
     """ shows current ressources of own char. if args add arg1 points to arg0.
     Example: `/res lp -5`
     """
+    args = context.args
+    bot = context.bot
     # tg_user = ut.get_user_or_quoted(update)
     tg_user = ut.get_third_user(update)
     player = ut.get_p_user(tg_user)
@@ -211,14 +207,14 @@ def ressource(bot, update, args):
     logger.info(text)
 ressource.text = 'Zeigt oder aendert die aktuellen Ressourcen eines Spielers.'
 ressource.aliases = ['res', 'vorraete', 'status', 'vitalitaet', 'ressourcen']
-ressource.args = True
 commands.append(ressource)
 
 
-def test_probe(bot, update, args):
+def test_probe(update, context):
     """ runs Action.probe for action taken from args. If args is int its taken
     as id, otherwise titles are searched for the arg and probe is run on all.
     """
+    args = context.args
     player = ut.get_player(update.message.from_user)
     char = player.active_char
     if char is None:
@@ -240,14 +236,15 @@ def test_probe(bot, update, args):
         update.message.reply_text(text=MSG['testprobe'].format(**res))
         logger.info(f'got result for test probe: {res}')
 test_probe.text = 'WIP funktion zum testen verschiedener proben'
-test_probe.args = True
 test_probe.aliases = ['testprobe', 'tp']
 commands.append(test_probe)
 
 
-def mega_test_probe(bot, update, args):
+def mega_test_probe(update, context):
     """ runs Action probe 1000 times and returns percentage and hists
     """
+    args = context.args
+    bot = context.bot
     try:
         import pandas as pd
         import datetime as dt
@@ -311,14 +308,14 @@ def mega_test_probe(bot, update, args):
     #update.message.reply_text(MSG['megaprobe'].format(**mres))
     bot.send_photo(update.message.chat_id, photo=iomage, caption=MSG['megaprobe'].format(**mres))
 mega_test_probe.text = 'WIP funktion zum testen verschiedener proben'
-mega_test_probe.args = True
 mega_test_probe.aliases = ['megatestprobe', 'megatp', 'mtp']
 commands.append(mega_test_probe)
 
 
-def roll(bot, update, args):
+def roll(update, context):
     """ rollt args wuerfel und gibt die einzel werte sowie die summe zurueck.
     """
+    args = context.args
     try:
         n = int(args[0])
     except Exception:
@@ -329,15 +326,14 @@ def roll(bot, update, args):
         txt += f' = {sum(rolls)}'
     update.message.reply_text(txt, parse_mode='HTML')
 roll.text = 'Mehrfach würfeln'
-roll.args = True
 roll.aliases = ['wuerfeln', 'wurf', 'roll']
 commands.append(roll)
 
 
-def triroll(bot, update, args):
+def triroll(update, context):
     """ shortcut fuer /roll 3 """
-    roll(bot, update, ['3'])
+    context.args = ['3']
+    roll(update, context)
 triroll.text = 'Kurzform für /wuerfeln 3'
-triroll.args = True
 triroll.aliases = ['probe', 'triroll', 'dummyprobe']
 commands.append(triroll)
