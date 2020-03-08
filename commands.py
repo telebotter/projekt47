@@ -5,12 +5,14 @@ from projekt47.constants import *
 from projekt47.models import *
 from projekt47.models import Projekt47User
 from django.conf import settings
+from telebotter.utils import typing_action
 import operator
 
 logger = logging.getLogger(__name__)
 commands = []
 
 
+@typing_action
 def add_sp(update, context):
     """ provides the active character of player one or more (args) SP.
     Works with negative numbers as well.
@@ -37,6 +39,7 @@ add_sp.aliases = ['addskillpoints', 'addskillpoint',
 commands.append(add_sp)
 
 
+@typing_action
 def activate_char(update, context):
     """ debug command, to manually select a character by id.
     """
@@ -50,6 +53,7 @@ activate_char.aliases = ['aktiviere', 'aktivieren', 'activate', 'enable']
 commands.append(activate_char)
 
 
+@typing_action
 def info_text(update, context):
     """ posts info text (story/description) of this users active char.
     TODO: ut.get_third_user() check message for mention entities or quoted
@@ -70,6 +74,7 @@ info_text.aliases = ['info', 'infotext']
 commands.append(info_text)
 
 
+@typing_action
 def info_stats(update, context):
     """ posts stats text (story/description) of this users active char.
     TODO: ut.get_third_user() check message for mention entities or quoted
@@ -85,6 +90,7 @@ info_stats.args = True
 commands.append(info_stats)
 
 
+@typing_action
 def set_story(update, context):
     """ posted story vom aktuellen char wenn kein argument, ansonsten wird sie
     neu geschrieben.
@@ -103,6 +109,7 @@ set_story.aliases = ['story', 'text', 'beschreibung']
 commands.append(set_story)
 
 
+@typing_action
 def show_rules(update, context):
     """ posted alle regeln in kurz oder die nummer aus args in lang.
     """
@@ -125,6 +132,7 @@ show_rules.aliases = ['regeln', 'rules', 'regel', 'rule']
 commands.append(show_rules)
 
 
+@typing_action
 def draw_metacard(bot, update, args):
     """ draw a first meta card, or a new one with arg=neu
     """
@@ -144,6 +152,7 @@ draw_metacard.aliases = ['metakarte', 'dc', 'draw', 'drawcard', 'meta', 'karte']
 commands.append(draw_metacard)
 
 
+@typing_action
 def shit(update, context):
     """ draw a first meta card, or a new one with arg=neu
     """
@@ -155,6 +164,7 @@ shit.aliases = ['shit']
 commands.append(shit)
 
 
+@typing_action
 def ressource(update, context):
     """ shows current ressources of own char. if args add arg1 points to arg0.
     Example: `/res lp -5`
@@ -210,6 +220,7 @@ ressource.aliases = ['res', 'vorraete', 'status', 'vitalitaet', 'ressourcen']
 commands.append(ressource)
 
 
+@typing_action
 def test_probe(update, context):
     """ runs Action.probe for action taken from args. If args is int its taken
     as id, otherwise titles are searched for the arg and probe is run on all.
@@ -240,6 +251,7 @@ test_probe.aliases = ['testprobe', 'tp']
 commands.append(test_probe)
 
 
+@typing_action
 def mega_test_probe(update, context):
     """ runs Action probe 1000 times and returns percentage and hists
     """
@@ -312,6 +324,7 @@ mega_test_probe.aliases = ['megatestprobe', 'megatp', 'mtp']
 commands.append(mega_test_probe)
 
 
+@typing_action
 def roll(update, context):
     """ rollt args wuerfel und gibt die einzel werte sowie die summe zurueck.
     """
@@ -330,6 +343,7 @@ roll.aliases = ['wuerfeln', 'wurf', 'roll']
 commands.append(roll)
 
 
+@typing_action
 def triroll(update, context):
     """ shortcut fuer /roll 3 """
     context.args = ['3']
