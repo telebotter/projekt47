@@ -5,7 +5,7 @@ from projekt47.constants import *
 from projekt47.models import *
 from projekt47.models import Projekt47User
 from django.conf import settings
-from telebotter.utils import typing_action
+from telebotter.utils import typing_action, restricted
 import operator
 
 logger = logging.getLogger(__name__)
@@ -184,19 +184,6 @@ def ressource(update, context):
         msg_text = MSG['ress'].format(char.name, res_text)
         update.message.reply_text(msg_text, parse_mode='HTML')
         return
-    # with at least to args:
-    # use get instead of filter and first or just filter (list). This should
-    # always return one cres if not there should be an error raised.
-    # if cres.count() < 1:
-    #     log.warning("No ressource found for {args[0]}")
-    #     update.message.reply_text(MSG['nores'].format(args[0]))
-    #     return
-    # elif cres.count() > 1:
-    #     log.error(f"To many char ress found for {args[0]}")
-    #     log.info(str(update))
-    #     update.message.reply_text(MSG['error'])
-    #     return
-    # __iexact makes comparism case insensitive
     try:
         cres = char.charres_set.get(res__abbr__iexact=args[0])
     except ValueError as ve:
@@ -351,3 +338,10 @@ def triroll(update, context):
 triroll.text = 'Kurzform für /wuerfeln 3'
 triroll.aliases = ['probe', 'triroll', 'dummyprobe']
 commands.append(triroll)
+
+
+@restricted
+def admincheck(update, context):
+    update.message.reply_text('Du bist Admin')
+admincheck.aliases = ['admincheck']
+commands.append(admincheck)
