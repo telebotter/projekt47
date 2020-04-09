@@ -134,7 +134,7 @@ def cm_selected(update, context):
         player.save()
         # quick jump to skill bypass conversationhandler steps
         # return SPECIALS
-        return cm_stats(bot, update)
+        return cm_stats(update, context)
     elif data[0] == 'cm_delete':
         logger.info(f'{player} delete char {char.name}')
         char.delete()
@@ -265,17 +265,18 @@ def cm_actions(update, context):
             query.answer('Nur Werte von 1-6 erlaubt!')
             return SPECIALS
         # remove actions that are not longer allowed
-        if new_stat > 4:
-            rem_acts = char.actions.filter(stats__in=[cstat.stat])
-            rem_count = rem_acts.count()
-            if rem_acts.count() > 0:
-                logger.error('removed actions')
-                query.answer(MSG['nostatreq'])
-                new_sp += rem_count
-                logger.error(f'sp added: {rem_acts.count()}')
-                for a in rem_acts:
-                    char.actions.remove(a)
-                    logger.info(f'removed {a}')
+        #
+        # if new_stat > 4:
+        #     rem_acts = char.actions.filter(stats__in=[cstat.stat])
+        #     rem_count = rem_acts.count()
+        #     if rem_acts.count() > 0:
+        #         logger.error('removed actions')
+        #         query.answer(MSG['nostatreq'])
+        #         new_sp += rem_count
+        #         logger.error(f'sp added: {rem_acts.count()}')
+        #         for a in rem_acts:
+        #             char.actions.remove(a)
+        #             logger.info(f'removed {a}')
 
 
         # change values in db
