@@ -3,7 +3,18 @@
 {% block content %}
 <div class="container">
   <div class="row">
-    Index Page fuer @projekt47bot
+    {% if user.is_authenticated %}
+      <div class="alert alert-warning" role="alert">
+        <b>TODO:</b> Quicklinks für User (Eigene Chars, Eigene Addons, Neue Erstellen, etc..)
+      </div>
+    {% endif %}
+  </div>
+  <div class="row">
+    <ul>
+      <li><a href="/projekt47/regeln/">Allgemeine Regeln</a></li>
+      <li><a href="/projekt47/charaktere/">Charaktere</a></li>
+      <li><a href="/projekt47/addons/">Addons</a></li>
+    </ul>
   </div>
 </div>
 {% endblock content %}

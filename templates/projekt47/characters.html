@@ -1,0 +1,15 @@
+{% extends 'core/base.html' %}
+{% load telebottertags %}
+{% block content %}
+
+
+<div class="container">
+<h1>Charaktere</h1>
+<div class="card-columns">
+{% for character in characters %}
+  {% as_card character.card_context %}
+{% endfor %}
+</div>
+
+</div>
+{% endblock content %}

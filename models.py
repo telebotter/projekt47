@@ -115,20 +115,29 @@ class Adventure(models.Model):
         verbose_name = 'Abenteuer'
         verbose_name_plural = 'Abenteuer'
     name = models.CharField(max_length=150)
+    owner = models.ForeignKey(Projekt47User,
+            blank=True, null=True, on_delete=models.SET_NULL)
     addon = models.ForeignKey(Addon, on_delete=models.CASCADE, null=True)
-    parent = models.ForeignKey("Adventure", null=True, blank=True,
-                                        on_delete=models.SET_NULL)
     duration = models.FloatField(null=True, blank=True, verbose_name='Dauer')
     player_min = models.IntegerField(null=True, blank=True,
                                         verbose_name='Minimale Spielerzahl')
     player_max = models.IntegerField(null=True, blank=True,
                                         verbose_name='Maximale Spielerzahl')
-    preview = models.CharField(max_length=1024, null=True, blank=True,
+    spoiler = models.CharField(max_length=1024, null=True, blank=True,
                                         verbose_name='Kurzbeschreibung')
     text = models.TextField(verbose_name='Text')
 
     def __str__(self):
         return str(self.name)
+
+    def card_context(self):
+        ctx =  {
+            'title': self.name,
+            #'subtitle': f'Autor: {self.owner}',
+            'footer': 'Autor: ' + str(self.owner),
+            'text': self.spoiler,
+        }
+        return ctx
 
 
 class Stat(models.Model):
@@ -163,6 +172,15 @@ class Stat(models.Model):
         act.is_stat = True
         return act
 
+    def card_context(self):
+        ctx =  {
+            'title': f'{self.name} [{self.abbr}]',
+            #'subtitle': f'Autor: {self.owner}',
+            # 'class': 'addon-thumb',
+            'text': self.text,
+        }
+        return ctx
+
 
 class Ressource(models.Model):
     """ Ressource is a stat that is has a fixed maximum and minimum and can be
@@ -181,6 +199,15 @@ class Ressource(models.Model):
 
     def __str__(self):
         return '{} [{}]'.format(self.name, self.addon.name)
+
+    def card_context(self):
+        ctx =  {
+            'title': f'{self.name}',
+            'subtitle': f'Abkürzung: {self.abbr}',
+            'text': self.text,
+            'footer': f'Skillfaktor: {self.scale}',
+        }
+        return ctx
 
 
 class Action(models.Model):
@@ -212,6 +239,13 @@ class Action(models.Model):
 
     def __str__(self):
         return '{} [{}]'.format(self.name, self.addon.name)
+
+    def card_context(self):
+        return {
+            'title': f'{self.name}',
+            'subtitle': f'Probe: {self.stat_1.abbr}|{self.stat_2.abbr}|{self.stat_3.abbr}',
+            'text': self.text,
+        }
 
     def probe(self, char, malus=0):
         """ rolls evaluates the action for a passed character and returns the
@@ -297,6 +331,19 @@ class Character(models.Model):
     def __str__(self):
         return str(self.name)
 
+    def card_context(self):
+        if self.image:
+            img = f'/media/{self.image}'
+        else:
+            img = None
+        return {
+            'image': img,
+            'title': f'{self.name}',
+            'subtitle': f'Spieler: {self.owner}',
+            'text': self.text,
+            'urls': [{'href': f'/projekt47/charaktere/{self.id}', 'link': 'Details..'}],
+        }
+
     def info_text(self, html=True, name=True):
         """ returns a string with optional name/addon as header. It contains the
         characters description Char.text and can be used as message text.
@@ -370,6 +417,15 @@ class MetaCard(models.Model):
         b = '<b>{}</b>' if html else '{}'
         return b.format(self.name) + '\n' + self.text
 
+    def card_context(self):
+        return {
+            'title': f'{self.name}',
+            'subtitle': f'Verdeckt: {self.face_down}',
+            'text': self.text,
+        }
+
+
+
 
 class DefaultName(models.Model):
     """ Namens vorschlaege bei der generierung von characteren.
@@ -437,14 +493,16 @@ class CharRes(models.Model):
         return '{}: {} {:+d}'.format(self.char.name, self.res.name, self.max)
 
 
-# class CharAction(models.Model):
-#     """ character specific information of an action, like level/skill
-#     not used yet.. chars either can use an ability or cant.. they scale with
-#     stats no action skill.
-#     """
-#     char = models.ForeignKey(Character, on_delete=models.CASCADE)
-#     act = models.ForeignKey(Action, on_delete=models.CASCADE)
-#     value = models.IntegerField(default=0)
-#
-#     def __str__(self):
-#         return '{}: {} {:+d}'.format(self.char.name, self.act.name, self.value)
+class CharAction(models.Model):
+    """ character specific information of an action, like level/skill
+    not used yet.. chars either can use an ability or cant.. they scale with
+    stats no action skill.
+    """
+    char = models.ForeignKey(Character, on_delete=models.CASCADE)
+    act = models.ForeignKey(Action, on_delete=models.CASCADE)
+    value = models.IntegerField(default=0)  # Bisher noch optional
+    text = models.CharField(default="Noch nicht spezialisiert.",
+            null=True, blank=True, max_length=255)
+
+    def __str__(self):
+        return '{}: {} {:+d}'.format(self.char.name, self.act.name, self.value)

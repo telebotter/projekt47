@@ -1,0 +1,60 @@
+{% extends 'core/base.html' %}
+{% load telebottertags %}
+
+{% block content %}
+<div class="spacer" style="margin-top:100px;"></div>
+
+<div class="container">
+  <h1>{{ character.name }}</h1>
+  <div class="row">
+    {% if character.image %}
+    <div class="col-md-6">
+      <img src="/media/{{ character.image }}" alt="Avatar" class="img-fluid" />
+    </div>
+    {% endif %}
+    <div class="col-md-6">
+      {{ character.text }}
+    </div>
+  </div>
+  <h2>Werte</h2>
+  <table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col">Bezeichnung</th>
+      <th scope="col">Schulnote</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for cstat in character.charstat_set.all %}
+    {% if cstat.value >= 5 %}
+      <tr class="table-danger">
+    {% elif cstat.value <= 2 %}
+      <tr class="table-success">
+    {% else %}
+      <tr class="table-warning">
+    {% endif %}
+      <td>{{ cstat.stat.name }}</td>
+      <td>{{ cstat.value }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+  <h2>Ressourcen</h2>
+  <div class="card-columns">
+    {% for res in character.charres_set.all %}
+      {{res.res.name}}: {{res.current}}/{{res.max}}
+    {% endfor %}
+  </div>
+
+  <h2>Spezialaktionen</h2>
+  <div class="card-deck">
+  {% for action in character.actions.all %}
+    {% as_card action.card_context %}
+  {% endfor %}
+  </div>
+
+
+  <h2>Metakarte</h2>
+</div>
+{% endblock %}

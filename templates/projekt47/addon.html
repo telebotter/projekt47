@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load telebottertags %}
 
 {% block content %}
 <div class="spacer" style="margin-top:100px;"></div>
@@ -7,30 +8,28 @@
   <h1>{{ addon.name }}</h1>
   <p>{{ addon.text }}</p>
   <h2>Werte</h2>
-  <ul>
+  <div class="card-columns">
     {% for stat in addon.stats.all %}
-      <li>{{ stat.name }}
+      {% as_card stat.card_context %}
     {% endfor %}
-  </ul>
+  </div>
   <h2>Aktionen</h2>
-  <ul>
+  <div class="card-columns">
     {% for action in addon.actions.all %}
-      <li>{{ action.name }}
+      {% as_card action.card_context %}
     {% endfor %}
-  </ul>
+  </div>
   <h2>Metakarten</h2>
-  <ul>
+  <div class="card-columns">
     {% for meta in addon.meta_cards.all %}
-      <li>{{ meta.name }}
+      {% as_card meta.card_context %}
     {% endfor %}
-  </ul>
+  </div>
   <h2>Ressourcen</h2>
-  <ul>
-    {% for res in addon.ress.all %}
-      <li>{{ res.name }}
+  <div class="card-columns">
+    {% for res in addon.ressources.all %}
+      {% as_card res.card_context %}
     {% endfor %}
-  </ul>
-  <h2>Hinweise</h2>
-  <h2>Inhalt</h2>
+  </div>
 </div>
 {% endblock %}

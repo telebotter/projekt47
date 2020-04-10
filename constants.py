@@ -53,7 +53,13 @@ RULES = [
 'short': 'Der Erfolg einer Aktion wird durch Würfeln bestimmt!',
 'long': 'Aktionen haengen von drei Basiswerten ab. Um eine Aktion durchzufuehren würfelt der Spieler mit drei Würfeln. Übersteigt die Summe der Augen, die Summe der Werte des Charakters gilt die Probe allgemein als bestanden. Durch besondere Umstände, können Proben durch Ansage des SLs erschwert (-x) oder erleichtert (+x) werden. Dieser Wert wird auf die Wuerfelsumme addiert. Wuerfelt der Spieler nur 5 oder 6, kann der SM einen Bonus aussprechen, zB verdopplung des Schadens eines Angriffs. Nur 1 und 2 hingegen, lässt die Aktion katastrophal scheitern.',
 },{  # 4
+'short': 'Proben werden nur für gelernte Aktionen geworfen!',
+'long': 'Die meisten Addons verfügen über einen Satz von (Basis-)Aktionen, die jedem Charakter zur Verfügung stehen. Darüber hinaus, können weitere (Spezial-)Aktionen gelernt werden. Soll der Charakter etwas tun, wofür er keine passende Aktion zur auswahl hat, kann der SL eine alternative Aktion oder ein Basiswert als erschwerte Probe zulassen.',
+},{  # 5
 'short': 'Eigenverantwortliches Rollenspiel!',
 'long': 'Da die Regeln abstrakt und Aktionen oder Werte unterschiedlich starken einfluss auf das Spiel haben können, liegt ein Teil der Verantworung für ein ausgeglichenes Rollenspielerlebnis bei dem Spieler. Sehr abstrakt formulierte Aktionen wie <i>Projektilzauber</i> sollten vom Spieler für ihren Charakter konkretisiert werden, ohne das sie zu stark oder nutzlos werden. Werte und Aktionen sollten so gewählt werden, dass sie am besten zur Geschichte oder zum Charakter passen und nicht um die Warscheinlichkeit zum Gelingen von Proben zu maximieren.',
+},{  # 6
+'short': 'Aktionen können Ressourcen verbrauchen!',
+'long': 'Das Spiel bietet ein sehr vereinfachtes Ressourcensystem. Ob und wie weit dies genutzt wird, oder es dem Spieler überlassen ist, sein Geld oder Leben im Blick zu halten, hängt vom Addon ab. Prinzipiell kann für jede Aktion für den Erfolgs- sowie Misserfolgsfall Kosten (Ressource + Wert) eingetragen werden. Der Wert ist fest, kann aber auch negativ sein, um durch Aktionen (zB Meditieren) Ressourcen wieder aufzufüllen. Sollten der Maximalwert über- oder 0 unterschritten werden, wird der Spieler benachrichtigt und der Wert auf die Grenze gesetzt. Da nicht nur Aktionen die Ressourcen beeinflussen, oder diese in bestimmten Fällen anders kosten, können Ressourcen auch manuell angepasst werden. (/res <abbr> und Nullkosten Feld bei den Proben).'
 }
 ]
