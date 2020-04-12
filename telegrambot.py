@@ -24,6 +24,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.core.files.storage import FileSystemStorage
 import os
+from projekt47.conf import settings
 import io
 # import pwd
 #
