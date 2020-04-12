@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+{% load bootstrap4 %}
+{% load telebottertags %}
+
+{% block appmenu %}
+<!--{% if user.is_authenticated %}
+<li class="nav-item">
+    <a class="nav-link" href="/projekt47/eigenes">Meine Inhalte</a>
+</li>
+{% endif %}-->
+<li class="nav-item">
+    <a class="nav-link" href="/projekt47/regeln">Anleitung</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/projekt47/addons">Addons</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/projekt47/charaktere">Charaktere</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="/projekt47/abenteuer">Abenteuer</a>
+</li>
+{% endblock %}
+
+{% block botdropdowntitle %}
+{{ "🗿 Projekt 47" }}
+{% endblock %}
